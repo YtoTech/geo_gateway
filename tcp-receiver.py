@@ -37,11 +37,14 @@ while True:
     logging.info('Connection accepted from {}'.format(addr))
     logging.debug('Beginning to receive... (buffer size is {})'.format(BUFFER_SIZE))
     receivedData = ''
-    while True:
-        partData = conn.recv(BUFFER_SIZE)
-        logging.debug('Partial received data: {}'.format(partData))
-        receivedData += partData
-        if len(partData) < BUFFER_SIZE:
-            logging.info('End of the stream, connection closed by peer {}'.format(addr))
-            logging.info(receivedData)
-            break
+    try:
+        while True:
+            partData = conn.recv(BUFFER_SIZE)
+            logging.debug('Partial received data: {}'.format(partData))
+            receivedData += partData
+            if len(partData) < BUFFER_SIZE:
+                logging.info('End of the stream, connection closed by peer {}'.format(addr))
+                logging.info(receivedData)
+                break
+    except socket.error as e:
+        logging.exception(e)
