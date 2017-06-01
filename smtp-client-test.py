@@ -5,6 +5,7 @@ import sys
 # host = sys.argv[1]
 # port = int(sys.argv[2])
 SERVER = 'localhost'
+SERVER = 'genloc.ytotech.com'
 PORT = 2525
 USER = 'aaz-performance-1'
 PASSWORD = 'coincoin'

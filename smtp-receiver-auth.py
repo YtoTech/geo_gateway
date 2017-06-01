@@ -54,7 +54,7 @@ class CredentialValidator:
 
 
 def run():
-    print('Starting server')
+    print('Starting server on {}:{}'.format(HOST, PORT))
     server = SmtpEmlDumperServer(
         (HOST, PORT),
         None,
