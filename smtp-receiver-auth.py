@@ -18,6 +18,10 @@ import secure_smtpd
 # + add installation instructions
 # https://github.com/bcoe/secure-smtpd/issues/30
 
+HOST = '0.0.0.0'
+# PORT = 25
+PORT = 2525
+
 DIRECTORY = 'tmp/'
 USERS = {
     'aaz-performance-1': 'coincoin'
@@ -52,7 +56,7 @@ class CredentialValidator:
 def run():
     print('Starting server')
     server = SmtpEmlDumperServer(
-        ('localhost', 25),
+        (HOST, PORT),
         None,
         require_authentication=True,
         ssl=False,

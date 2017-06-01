@@ -5,7 +5,7 @@ import sys
 # host = sys.argv[1]
 # port = int(sys.argv[2])
 SERVER = 'localhost'
-PORT = 25
+PORT = 2525
 USER = 'aaz-performance-1'
 PASSWORD = 'coincoin'
 
