@@ -30,17 +30,5 @@ Test
 
     $ rebar3 shell --apps geo_sensors_gateway
 
-Develop
------
-
-    $ rebar3 shell
-    1> {ok,Pid} = gen_smtp_server:start(smtp_server, [[
-        {port, 2525},
-        {sessionoptions,
-            [{callbackoptions, [{auth, true}]}]
-        }
-        ]]).
-    2> gen_smtp_server:stop(Pid).
-    3> r3:do(compile).
 
 TODO Rename project on GitHub to Erlang non-quoted atom `geo_sensors_gateway`.

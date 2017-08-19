@@ -19,7 +19,13 @@ start(_StartType, _StartArgs) ->
     {ok,_} = gen_smtp_server:start(smtp_server, [[
         {port, 2525},
         {sessionoptions,
-            [{callbackoptions, [{auth, true}]}]
+            [{callbackoptions,
+                [
+                    {auth, true},
+                    {parse, true},
+                    {dump, true}
+                ]
+            }]
         }
         ]]),
     geo_sensors_gateway_sup:start_link().

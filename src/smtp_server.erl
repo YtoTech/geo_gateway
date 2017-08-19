@@ -99,6 +99,7 @@ handle_MAIL(<<"badguy@blacklist.com">>, State) ->
 handle_MAIL(From, State) ->
 	io:format("Mail from ~s~n", [From]),
 	% you can accept or reject the FROM address here
+    % TODO Here filter the accepted mails. Load list from a json file. (Same as auth)
 	{ok, State}.
 
 %% @doc Handle an extension to the MAIL verb. Return either `{ok, State}' or `error' to reject
@@ -186,9 +187,6 @@ handle_other(Verb, _Args, State) ->
 %% this callback is OPTIONAL
 %% it only gets called if you add AUTH to your ESMTP extensions
 -spec handle_AUTH(Type :: 'login' | 'plain' | 'cram-md5', Username :: binary(), Password :: binary() | {binary(), binary()}, #state{}) -> {'ok', #state{}} | 'error'.
-% handle_AUTH(Type, Username, Password, State) ->
-%     io:format("handle_AUTH ~w ~w :~w ~n", [Type, Username, Password]),
-% 	{ok, State};
 handle_AUTH(Type, <<"username">>, <<"PaSSw0rd">>, State) when Type =:= login; Type =:= plain ->
 	{ok, State};
 % TODO Load authorized usernames and passwords from a json map.
@@ -200,7 +198,8 @@ handle_AUTH('cram-md5', <<"annon">>, {Digest, Seed}, State) ->
 		_ ->
 			error
 	end;
-handle_AUTH(_Type, _Username, _Password, _State) ->
+handle_AUTH(Type, Username, Password, _State) ->
+    io:format("handle_AUTH ~w ~s :~w ~n", [Type, Username, Password]),
 	error.
 
 %% this callback is OPTIONAL
