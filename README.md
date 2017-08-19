@@ -1,6 +1,6 @@
-> GeoSensors Gateway
+# GeoSensors Gateway
 
-Receive and redistribute data from vehicule geolocalisation sensors.
+> Receive and redistribute data from vehicle geolocation sensors.
 
 Prototyping project to receive data from remote Ercogener Genloc sensors.
 
