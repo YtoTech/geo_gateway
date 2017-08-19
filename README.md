@@ -1,4 +1,4 @@
-> Ercogener Genloc gateway
+> GeoSensors Gateway
 
 Prototyping project to receive data from remote Ercogener Genloc sensors.
 
