@@ -1,5 +1,7 @@
 > GeoSensors Gateway
 
+Receive and redistribute data from vehicule geolocalisation sensors.
+
 Prototyping project to receive data from remote Ercogener Genloc sensors.
 
 Try to receive data from TCP:
@@ -15,3 +17,12 @@ Try to receive data from SMTP:
 
 Do a server prototype on Erlang, so we really begin to construct reliable
 pieces of network and messaging software.
+
+An OTP application
+
+Build
+-----
+
+    $ rebar3 compile
+
+TODO Rename project on GitHub to Erlang non-quoted atom `geo_sensors_gateway`.

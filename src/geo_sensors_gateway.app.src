@@ -1,0 +1,17 @@
+{application, geo_sensors_gateway,
+ [{description, "An OTP application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, { geo_sensors_gateway_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    gen_smtp
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {maintainers, []},
+  {licenses, ["GPL v3"]},
+  {links, []}
+ ]}.

@@ -24,7 +24,7 @@ PORT = 2525
 
 DIRECTORY = 'tmp/'
 USERS = {
-    'aaz-performance-1': 'coincoin'
+    'annon: 'coincoin'
 }
 
 class SmtpEmlDumperServer(SMTPServer):

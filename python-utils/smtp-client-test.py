@@ -2,12 +2,13 @@ import smtplib
 from email.mime.text import MIMEText
 import sys
 
-# host = sys.argv[1]
-# port = int(sys.argv[2])
 SERVER = 'localhost'
-SERVER = 'genloc.ytotech.com'
+if len(sys.argv) > 1:
+    SERVER = sys.argv[1]
 PORT = 2525
-USER = 'aaz-performance-1'
+if len(sys.argv) > 2:
+    PORT = sys.argv[2]
+USER = 'annon'
 PASSWORD = 'coincoin'
 
 # Create a text/plain message
