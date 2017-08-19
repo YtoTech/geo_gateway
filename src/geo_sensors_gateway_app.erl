@@ -16,6 +16,12 @@
 
 start(_StartType, _StartArgs) ->
     io:format("HELLO from there~n"),
+    {ok,_} = gen_smtp_server:start(smtp_server, [[
+        {port, 2525},
+        {sessionoptions,
+            [{callbackoptions, [{auth, true}]}]
+        }
+        ]]),
     geo_sensors_gateway_sup:start_link().
 
 %%--------------------------------------------------------------------
