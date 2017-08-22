@@ -1,4 +1,8 @@
-[{<<"gen_smtp">>,
-  {git,"git://github.com/Vagabond/gen_smtp.git",
-       {ref,"e07022695735fe3b3eaf0fca52d85e91eef2a67f"}},
+[{<<"eiconv">>,
+  {git,"git://github.com/zotonic/eiconv.git",
+       {ref,"bf2421e7ced68e2654321f3b02494ccf3653a33c"}},
+  0},
+ {<<"gen_smtp">>,
+  {git,"git://github.com/YtoTech/gen_smtp.git",
+       {ref,"6a72f25572018c854bbc78e5e50cf91fc2a39112"}},
   0}].

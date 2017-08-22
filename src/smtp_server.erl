@@ -2,6 +2,7 @@
 %% documentation for the required callback API.
 
 -module(smtp_server).
+-author('yoan@ytotech.com').
 -behaviour(gen_smtp_server_session).
 
 
@@ -144,8 +145,14 @@ handle_DATA(From, To, Data, State) ->
 			case proplists:get_value(parse, State#state.options, false) of
 				false -> ok;
 				true ->
+					% Decoded = mimemail:decode(Data),
+					% {Type, SubType, _Headers, _Properties, Body} = Decoded,
+					% io:format("Decoded: ~s ~s ~n", [Type,SubType]),
 					try mimemail:decode(Data) of
-						_Result ->
+						{_Type, _SubType, Headers, _Properties, Body} ->
+							io:format("From: ~s~nTo: ~s~n", [From, To]),
+							io:format("Headers: ~p~n", [Headers]),
+							io:format("Body: ~s~n", [Body]),
 							io:format("Message decoded successfully!~n")
 					catch
 						What:Why ->

@@ -7,5 +7,16 @@ root = true
 end_of_line = lf
 insert_final_newline = true
 charset = utf-8
-indent_style = space
+indent_style = tab
 indent_size = 4
+
+[Makefile]
+indent_style = tab
+
+[*.{conf,src,config,markdown}]
+indent_style = space
+
+[*.eml]
+end_of_line = crlf
+insert_final_newline = false
+trim_trailing_whitespace = false
