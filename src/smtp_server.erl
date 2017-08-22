@@ -96,11 +96,14 @@ handle_EHLO(Hostname, Extensions, State) ->
 handle_MAIL(<<"badguy@blacklist.com">>, State) ->
 	{error, "552 Not Managed", State};
 handle_MAIL(From, State) ->
+	% Filter the accepted mails. TODO Do we really need to reject using FROM?
 	io:format("Mail from ~s~n", [From]),
-	% you can accept or reject the FROM address here
-	% TODO Here filter the accepted mails. Load list from a json file. (Same as auth)
-	{ok, State}.
-
+	case maps:get(email, State#state.user) of
+		From ->
+			{ok, State};
+		_ ->
+			{error, "552 Not Managed", State}
+	end.
 
 -spec handle_RCPT(To :: binary(), State :: #state{}) -> {'ok', #state{}} | {'error', string(), #state{}}.
 handle_RCPT(To, State) ->
@@ -115,11 +118,21 @@ handle_DATA(From, To, Data, State) ->
 	% We do not relay emails but process them.
 	io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
 	% We always try to parse emails.
+	% TODO If dumping is enabled, dump all messages.
+	% ---> Will be usefull for debugging. (And make the server iso with the Python one)
 	try mimemail:decode(Data) of
 		{_Type, _SubType, Headers, _Properties, Body} ->
 			io:format("From: ~s~nTo: ~s~n", [From, To]),
 			io:format("Headers: ~p~n", [Headers]),
 			io:format("Body: ~s~n", [Body]),
+			% TODO Get the sensor type from user config
+			% and transfert to the appropriate parsing module.
+			% {ok, Payload} = mailparser:parse(User, Body),
+			% TODO When payload extracted from the mail,
+			% give it to the forwarder module that will handle its
+			% transmission.
+			% (Add it to the transmission queue)
+			% ok = forwarder:forward(User, Payload),
 			io:format("Message decoded successfully!~n")
 	catch
 		What:Why ->
@@ -128,7 +141,7 @@ handle_DATA(From, To, Data, State) ->
 			false -> ok;
 			true ->
 				%% optionally dump the failed email somewhere for analysis
-				File = "dump/"++Reference,
+				File = "dump/"++Reference++".eml",
 				case filelib:ensure_dir(File) of
 					ok ->
 						file:write_file(File, Data);

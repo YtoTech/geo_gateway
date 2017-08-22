@@ -7,7 +7,6 @@
 # venv/bin/python smtp-receiver-auth.py
 from secure_smtpd import SMTPServer
 from datetime import datetime
-import asyncore
 import os
 import logging
 import secure_smtpd
@@ -17,6 +16,15 @@ import secure_smtpd
 # TODO Create a complete Hello World
 # + add installation instructions
 # https://github.com/bcoe/secure-smtpd/issues/30
+
+# TODO Switch to http://aiosmtpd.readthedocs.io/en/latest/
+# Cf https://github.com/aio-libs/aiosmtpd/blob/master/examples/server.py to include user
+# https://speakerdeck.com/pycon2017/barry-warsaw-aiosmtpd-a-better-asyncio-based-smtp-server
+# See https://stackoverflow.com/questions/1138425/add-smtp-auth-support-to-python-smtpd-library-cant-override-the-method
+# and https://stackoverflow.com/questions/44028565/aiosmtpd-python-smtp-server
+
+# Post new code sample (without auth) to
+# https://stackoverflow.com/questions/2690965/a-simple-smtp-server
 
 HOST = '0.0.0.0'
 # PORT = 25

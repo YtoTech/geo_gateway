@@ -20,15 +20,27 @@ pieces of network and messaging software.
 
 An OTP application
 
-Build
+## Build
 -----
 
-    $ rebar3 compile
+    $ make compile
 
-Test
+## Test
 -----
 
-    $ rebar3 shell --apps geo_sensors_gateway
+    $ make test
 
 
 TODO Rename project on GitHub to Erlang non-quoted atom `geo_sensors_gateway`.
+
+TODO Add unit test for:
+* Auth
+    * Username does not match
+    * Plain, Login, cram-md5
+* FROM filtering
+* Json user loading
+	* Missing password, email
+* Mail parsing
+	* Invalid mail
+	* Sensor not managed
+	* Valid mail for Ercogener GenLoc
