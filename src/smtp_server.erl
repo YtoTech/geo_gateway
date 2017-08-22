@@ -6,8 +6,8 @@
 -behaviour(gen_smtp_server_session).
 
 
--export([init/4, handle_HELO/2, handle_EHLO/3, handle_MAIL/2, handle_MAIL_extension/2,
-	handle_RCPT/2, handle_RCPT_extension/2, handle_DATA/4, handle_RSET/1, handle_VRFY/2,
+-export([init/4, handle_HELO/2, handle_EHLO/3, handle_MAIL/2,
+	handle_RCPT/2, handle_DATA/4, handle_RSET/1, handle_VRFY/2,
 	handle_other/3, handle_AUTH/4, handle_info/2,
 	code_change/3, terminate/2]).
 
@@ -94,40 +94,17 @@ handle_EHLO(Hostname, Extensions, State) ->
 %% Return values are either `{ok, State}' or `{error, Message, State}' as before.
 -spec handle_MAIL(From :: binary(), State :: #state{}) -> {'ok', #state{}} | error_message().
 handle_MAIL(<<"badguy@blacklist.com">>, State) ->
-	{error, "552 go away", State};
+	{error, "552 Not Managed", State};
 handle_MAIL(From, State) ->
 	io:format("Mail from ~s~n", [From]),
 	% you can accept or reject the FROM address here
-    % TODO Here filter the accepted mails. Load list from a json file. (Same as auth)
+	% TODO Here filter the accepted mails. Load list from a json file. (Same as auth)
 	{ok, State}.
 
-%% @doc Handle an extension to the MAIL verb. Return either `{ok, State}' or `error' to reject
-%% the option.
--spec handle_MAIL_extension(Extension :: binary(), State :: #state{}) -> {'ok', #state{}} | 'error'.
-handle_MAIL_extension(<<"X-SomeExtension">> = Extension, State) ->
-	io:format("Mail from extension ~s~n", [Extension]),
-	% any MAIL extensions can be handled here
-	{ok, State};
-handle_MAIL_extension(Extension, _State) ->
-	io:format("Unknown MAIL FROM extension ~s~n", [Extension]),
-	error.
 
 -spec handle_RCPT(To :: binary(), State :: #state{}) -> {'ok', #state{}} | {'error', string(), #state{}}.
-handle_RCPT(<<"nobody@example.com">>, State) ->
-	{error, "550 No such recipient", State};
 handle_RCPT(To, State) ->
-	io:format("Mail to ~s~n", [To]),
-	% you can accept or reject RCPT TO addesses here, one per call
 	{ok, State}.
-
--spec handle_RCPT_extension(Extension :: binary(), State :: #state{}) -> {'ok', #state{}} | 'error'.
-handle_RCPT_extension(<<"X-SomeExtension">> = Extension, State) ->
-	% any RCPT TO extensions can be handled here
-	io:format("Mail to extension ~s~n", [Extension]),
-	{ok, State};
-handle_RCPT_extension(Extension, _State) ->
-	io:format("Unknown RCPT TO extension ~s~n", [Extension]),
-	error.
 
 -spec handle_DATA(From :: binary(), To :: [binary(),...], Data :: binary(), State :: #state{}) -> {'ok', string(), #state{}} | {'error', string(), #state{}}.
 handle_DATA(_From, _To, <<>>, State) ->

@@ -36,11 +36,20 @@ start(_StartType, _StartArgs) ->
 	% Load authorized users from a json map.
 	% TODO In case it fails, just use an empty map? Not a lot of sense.
 	% Give a gentle message. Create a sample file users.json.sample.
+	% TODO Create a provider for that and allows hot-reloading.
+	% The users are indexed by username, because we encounter
+	% first the AUTH in the process of receiving a mail.
 	{ok, UserFileContent} = file:read_file('users.json'),
 	UsersAsJson = jiffy:decode(UserFileContent, [return_maps]),
 	% Parse and reformat users.
 	Users = maps:map(
 		fun(Username, User) ->
+			% TODO Handle non-authenticated mode?
+			% We make here the assumption that we have one email handled
+			% by each username. (An username could allow to handle many
+			% mails).
+			% TODO Do we really care and want to filter by emails?
+			% When the auth is right, we can assume we are fine.
 			#{
 				password => maps:get(<<"password">>, User),
 				email => maps:get(<<"email">>, User)
@@ -49,9 +58,6 @@ start(_StartType, _StartArgs) ->
 		UsersAsJson
 	),
 	io:format("Users ~p ~n", [Users]),
-	% TODO Create a provider for that and allows hot-reloading.
-	% The users are indexed by username, because we encounter
-	% first the AUTH in the process of receiving a mail.
 	{ok,_} = gen_smtp_server:start(smtp_server, [[
 		% TODO Allows configuration of port. Default to 2525.
 		{port, 2525},
@@ -60,14 +66,6 @@ start(_StartType, _StartArgs) ->
 				[
 					{auth, true},
 					{dump, true},
-					% TODO Handle non-authenticated mode?
-					% We make here the assumption that we have one email handled
-					% by each username. (An username could allow to handle many
-					% mails).
-					% TODO Do we really care and want to filter by emails?
-					% When the auth is right, we can assume we are fine.
-					% Maybe we should just list users (with username, email, password)
-					% and use the first match.
 					{users, Users}
 				]
 			}]
