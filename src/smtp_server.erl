@@ -8,10 +8,8 @@
 
 -export([init/4, handle_HELO/2, handle_EHLO/3, handle_MAIL/2, handle_MAIL_extension/2,
 	handle_RCPT/2, handle_RCPT_extension/2, handle_DATA/4, handle_RSET/1, handle_VRFY/2,
-	handle_other/3, handle_AUTH/4, handle_STARTTLS/1, handle_info/2,
+	handle_other/3, handle_AUTH/4, handle_info/2,
 	code_change/3, terminate/2]).
-
--define(RELAY, true).
 
 -record(state,
 	{
@@ -82,8 +80,7 @@ handle_EHLO(Hostname, Extensions, State) ->
 	MyExtensions = case proplists:get_value(auth, State#state.options, false) of
 		true ->
 			% auth is enabled, so advertise it
-            % TODO Do not advertise STARTTLS.
-			Extensions ++ [{"AUTH", "PLAIN LOGIN CRAM-MD5"}, {"STARTTLS", true}];
+			Extensions ++ [{"AUTH", "PLAIN LOGIN CRAM-MD5"}];
 		false ->
 			Extensions
 	end,
@@ -137,39 +134,32 @@ handle_DATA(_From, _To, <<>>, State) ->
 handle_DATA(From, To, Data, State) ->
 	% some kind of unique id
     Reference = lists:flatten([io_lib:format("~2.16.0b", [X]) || <<X>> <= erlang:md5(term_to_binary(unique_id()))]),
-	% if RELAY is true, then relay email to email address, else send email data to console
-	case proplists:get_value(relay, State#state.options, false) of
-		true -> relay(From, To, Data);
-		false ->
-			io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
-			case proplists:get_value(parse, State#state.options, false) of
-				false -> ok;
-				true ->
-					% Decoded = mimemail:decode(Data),
-					% {Type, SubType, _Headers, _Properties, Body} = Decoded,
-					% io:format("Decoded: ~s ~s ~n", [Type,SubType]),
-					try mimemail:decode(Data) of
-						{_Type, _SubType, Headers, _Properties, Body} ->
-							io:format("From: ~s~nTo: ~s~n", [From, To]),
-							io:format("Headers: ~p~n", [Headers]),
-							io:format("Body: ~s~n", [Body]),
-							io:format("Message decoded successfully!~n")
-					catch
-						What:Why ->
-							io:format("Message decode FAILED with ~p:~p~n", [What, Why]),
-							case proplists:get_value(dump, State#state.options, false) of
-							false -> ok;
-							true ->
-								%% optionally dump the failed email somewhere for analysis
-								File = "dump/"++Reference,
-								case filelib:ensure_dir(File) of
-									ok ->
-										file:write_file(File, Data);
-									_ ->
-										ok
-								end
-							end
-					end
+	% We do not relay emails but process them.
+	io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
+	% We always try to parse emails.
+	% Decoded = mimemail:decode(Data),
+	% {Type, SubType, _Headers, _Properties, Body} = Decoded,
+	% io:format("Decoded: ~s ~s ~n", [Type,SubType]),
+	try mimemail:decode(Data) of
+		{_Type, _SubType, Headers, _Properties, Body} ->
+			io:format("From: ~s~nTo: ~s~n", [From, To]),
+			io:format("Headers: ~p~n", [Headers]),
+			io:format("Body: ~s~n", [Body]),
+			io:format("Message decoded successfully!~n")
+	catch
+		What:Why ->
+			io:format("Message decode FAILED with ~p:~p~n", [What, Why]),
+			case proplists:get_value(dump, State#state.options, false) of
+			false -> ok;
+			true ->
+				%% optionally dump the failed email somewhere for analysis
+				File = "dump/"++Reference,
+				case filelib:ensure_dir(File) of
+					ok ->
+						file:write_file(File, Data);
+					_ ->
+						ok
+				end
 			end
 	end,
 	% At this point, if we return ok, we've accepted responsibility for the email
@@ -181,8 +171,6 @@ handle_RSET(State) ->
 	State.
 
 -spec handle_VRFY(Address :: binary(), State :: #state{}) -> {'ok', string(), #state{}} | {'error', string(), #state{}}.
-handle_VRFY(<<"someuser">>, State) ->
-	{ok, "someuser@"++smtp_util:guess_FQDN(), State};
 handle_VRFY(_Address, State) ->
 	{error, "252 VRFY disabled by policy, just send some mail", State}.
 
@@ -209,13 +197,6 @@ handle_AUTH(Type, Username, Password, _State) ->
     io:format("handle_AUTH ~w ~s :~w ~n", [Type, Username, Password]),
 	error.
 
-%% this callback is OPTIONAL
-%% it only gets called if you add STARTTLS to your ESMTP extensions
--spec handle_STARTTLS(#state{}) -> #state{}.
-handle_STARTTLS(State) ->
-    io:format("TLS Started~n"),
-    State.
-
 -spec handle_info(Info :: term(), State :: term()) ->
     {noreply, NewState :: term()} |
     {noreply, NewState :: term(), timeout() | hibernate} |
@@ -240,12 +221,3 @@ unique_id() ->
 unique_id() ->
     erlang:now().
 -endif.
-
--spec relay(binary(), [binary()], binary()) -> ok.
-relay(_, [], _) ->
-	ok;
-relay(From, [To|Rest], Data) ->
-	% relay message to email address
-	[_User, Host] = string:tokens(binary_to_list(To), "@"),
-	gen_smtp_client:send({From, [To], erlang:binary_to_list(Data)}, [{relay, Host}]),
-	relay(From, Rest, Data).
