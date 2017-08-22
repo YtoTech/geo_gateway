@@ -32,25 +32,45 @@
 
 start(_StartType, _StartArgs) ->
 	% TODO Use http://erlang.org/doc/apps/kernel/application.html#ensure_all_started-1
-    {ok,_} = gen_smtp_server:start(smtp_server, [[
-        % TODO Allows configuration of port. Default to 2525.
-        {port, 2525},
-        {sessionoptions,
-            [{callbackoptions,
-                [
-                    {auth, true},
-                    {parse, true},
-                    {dump, true}
-                ]
-            }]
-        }
-        ]]),
+	% TODO Is that to start in the supervision tree?
+	{ok,_} = gen_smtp_server:start(smtp_server, [[
+		% TODO Allows configuration of port. Default to 2525.
+		{port, 2525},
+		{sessionoptions,
+			[{callbackoptions,
+				[
+					{auth, true},
+					{dump, true},
+					% TODO Load authorized usernames and passwords from a json map.
+					% TODO Create a provider for that and allows hot-reloading.
+					% The users are indexed by username, because we encounter
+					% first the AUTH in the process of receiving a mail.
+					% TODO Handle non-authenticated mode?
+					% We make here the assumption that we have one email handled
+					% by each username. (An username could allow to handle many
+					% mails).
+					% TODO Do we really care and want to filter by emails?
+					% When the auth is right, we can assume we are fine.
+					% Maybe we should just list users (with username, email, password)
+					% and use the first match.
+					{users,
+						#{
+							<<"annon">> => #{
+								email => <<"test@ytotech.com">>,
+								password => <<"coincoin">>
+							}
+						}
+					}
+				]
+			}]
+		}
+	]]),
     % TODO Use the supervisor for hot-reloading?
     geo_sensors_gateway_sup:start_link().
 
 %%--------------------------------------------------------------------
 stop(_State) ->
-    ok.
+	ok.
 
 %%====================================================================
 %% Internal functions

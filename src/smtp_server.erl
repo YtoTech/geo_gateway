@@ -13,7 +13,8 @@
 
 -record(state,
 	{
-		options = [] :: list()
+		options = [] :: list(),
+		user :: map() | 'undefined'
 	}).
 
 -type(error_message() :: {'error', string(), #state{}}).
@@ -79,7 +80,7 @@ handle_EHLO(Hostname, Extensions, State) ->
     io:format("auth is ~w~n", [proplists:get_value(auth, State#state.options, false)]),
 	MyExtensions = case proplists:get_value(auth, State#state.options, false) of
 		true ->
-			% auth is enabled, so advertise it
+			% auth is enabled, so advertise it.
 			Extensions ++ [{"AUTH", "PLAIN LOGIN CRAM-MD5"}];
 		false ->
 			Extensions
@@ -137,9 +138,6 @@ handle_DATA(From, To, Data, State) ->
 	% We do not relay emails but process them.
 	io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
 	% We always try to parse emails.
-	% Decoded = mimemail:decode(Data),
-	% {Type, SubType, _Headers, _Properties, Body} = Decoded,
-	% io:format("Decoded: ~s ~s ~n", [Type,SubType]),
 	try mimemail:decode(Data) of
 		{_Type, _SubType, Headers, _Properties, Body} ->
 			io:format("From: ~s~nTo: ~s~n", [From, To]),
@@ -182,19 +180,27 @@ handle_other(Verb, _Args, State) ->
 %% this callback is OPTIONAL
 %% it only gets called if you add AUTH to your ESMTP extensions
 -spec handle_AUTH(Type :: 'login' | 'plain' | 'cram-md5', Username :: binary(), Password :: binary() | {binary(), binary()}, #state{}) -> {'ok', #state{}} | 'error'.
-handle_AUTH(Type, <<"username">>, <<"PaSSw0rd">>, State) when Type =:= login; Type =:= plain ->
+handle_AUTH(Type, Username, Password, State) ->
+	% Retrieve user in user database and get the user password.
+	case maps:find(Username, proplists:get_value(users, State#state.options, #{})) of
+		{ok, User} ->
+			handle_AUTH_user(Type, Password, maps:get(password, User), State#state{user=User});
+		_ ->
+			error
+	end.
+
+-spec handle_AUTH_user(Type :: 'login' | 'plain' | 'cram-md5', ProvidedPassword :: binary() | {binary(), binary()}, UserPassword :: binary(), #state{}) -> {'ok', #state{}} | 'error'.
+handle_AUTH_user(Type, ProvidedPassword, UserPassword, State) when Type =:= login; Type =:= plain, ProvidedPassword =:= UserPassword ->
 	{ok, State};
-% TODO Load authorized usernames and passwords from a json map.
-% TODO Create a provider for that and allows hot-reloading.
-handle_AUTH('cram-md5', <<"annon">>, {Digest, Seed}, State) ->
-	case smtp_util:compute_cram_digest(<<"coincoin">>, Seed) of
+handle_AUTH_user('cram-md5', {Digest, Seed}, UserPassword, State) ->
+	case smtp_util:compute_cram_digest(UserPassword, Seed) of
 		Digest ->
 			{ok, State};
 		_ ->
 			error
 	end;
-handle_AUTH(Type, Username, Password, _State) ->
-    io:format("handle_AUTH ~w ~s :~w ~n", [Type, Username, Password]),
+handle_AUTH_user(Type, Password, _UserPassword, _State) ->
+    io:format("handle_AUTH error ~w ~w ~n", [Type, Password]),
 	error.
 
 -spec handle_info(Info :: term(), State :: term()) ->
