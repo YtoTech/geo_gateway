@@ -33,6 +33,25 @@
 start(_StartType, _StartArgs) ->
 	% TODO Use http://erlang.org/doc/apps/kernel/application.html#ensure_all_started-1
 	% TODO Is that to start in the supervision tree?
+	% Load authorized users from a json map.
+	% TODO In case it fails, just use an empty map? Not a lot of sense.
+	% Give a gentle message. Create a sample file users.json.sample.
+	{ok, UserFileContent} = file:read_file('users.json'),
+	UsersAsJson = jiffy:decode(UserFileContent, [return_maps]),
+	% Parse and reformat users.
+	Users = maps:map(
+		fun(Username, User) ->
+			#{
+				password => maps:get(<<"password">>, User),
+				email => maps:get(<<"email">>, User)
+			}
+		end,
+		UsersAsJson
+	),
+	io:format("Users ~p ~n", [Users]),
+	% TODO Create a provider for that and allows hot-reloading.
+	% The users are indexed by username, because we encounter
+	% first the AUTH in the process of receiving a mail.
 	{ok,_} = gen_smtp_server:start(smtp_server, [[
 		% TODO Allows configuration of port. Default to 2525.
 		{port, 2525},
@@ -41,10 +60,6 @@ start(_StartType, _StartArgs) ->
 				[
 					{auth, true},
 					{dump, true},
-					% TODO Load authorized usernames and passwords from a json map.
-					% TODO Create a provider for that and allows hot-reloading.
-					% The users are indexed by username, because we encounter
-					% first the AUTH in the process of receiving a mail.
 					% TODO Handle non-authenticated mode?
 					% We make here the assumption that we have one email handled
 					% by each username. (An username could allow to handle many
@@ -53,14 +68,7 @@ start(_StartType, _StartArgs) ->
 					% When the auth is right, we can assume we are fine.
 					% Maybe we should just list users (with username, email, password)
 					% and use the first match.
-					{users,
-						#{
-							<<"annon">> => #{
-								email => <<"test@ytotech.com">>,
-								password => <<"coincoin">>
-							}
-						}
-					}
+					{users, Users}
 				]
 			}]
 		}

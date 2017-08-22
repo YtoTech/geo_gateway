@@ -200,7 +200,7 @@ handle_AUTH_user('cram-md5', {Digest, Seed}, UserPassword, State) ->
 			error
 	end;
 handle_AUTH_user(Type, Password, _UserPassword, _State) ->
-    io:format("handle_AUTH error ~w ~w ~n", [Type, Password]),
+	io:format("handle_AUTH error ~w ~w ~n", [Type, Password]),
 	error.
 
 -spec handle_info(Info :: term(), State :: term()) ->
