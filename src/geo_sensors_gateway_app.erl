@@ -43,7 +43,7 @@ start(_StartType, _StartArgs) ->
 	UsersAsJson = jiffy:decode(UserFileContent, [return_maps]),
 	% Parse and reformat users.
 	Users = maps:map(
-		fun(Username, User) ->
+		fun(_Username, User) ->
 			% TODO Handle non-authenticated mode?
 			% We make here the assumption that we have one email handled
 			% by each username. (An username could allow to handle many
