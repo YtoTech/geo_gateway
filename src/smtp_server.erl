@@ -6,8 +6,8 @@
 -behaviour(gen_smtp_server_session).
 
 
--export([init/4, handle_HELO/2, handle_EHLO/3, handle_MAIL/2,
-	handle_RCPT/2, handle_DATA/4, handle_RSET/1, handle_VRFY/2,
+-export([init/4, handle_HELO/2, handle_EHLO/3, handle_MAIL/2, handle_MAIL_extension/2,
+	handle_RCPT/2, handle_RCPT_extension/2, handle_DATA/4, handle_RSET/1, handle_VRFY/2,
 	handle_other/3, handle_AUTH/4, handle_info/2,
 	code_change/3, terminate/2]).
 
@@ -105,9 +105,21 @@ handle_MAIL(From, State) ->
 			{error, "552 Not Managed", State}
 	end.
 
+%% @doc Handle an extension to the MAIL verb. Return either `{ok, State}' or `error' to reject
+%% the option.
+-spec handle_MAIL_extension(Extension :: binary(), State :: #state{}) -> {'ok', #state{}} | 'error'.
+handle_MAIL_extension(Extension, _State) ->
+	io:format("Unknown MAIL FROM extension ~s~n", [Extension]),
+	error.
+
 -spec handle_RCPT(To :: binary(), State :: #state{}) -> {'ok', #state{}} | {'error', string(), #state{}}.
-handle_RCPT(To, State) ->
+handle_RCPT(_To, State) ->
 	{ok, State}.
+
+-spec handle_RCPT_extension(Extension :: binary(), State :: #state{}) -> {'ok', #state{}} | 'error'.
+handle_RCPT_extension(Extension, _State) ->
+	io:format("Unknown RCPT TO extension ~s~n", [Extension]),
+	error.
 
 -spec handle_DATA(From :: binary(), To :: [binary(),...], Data :: binary(), State :: #state{}) -> {'ok', string(), #state{}} | {'error', string(), #state{}}.
 handle_DATA(_From, _To, <<>>, State) ->
