@@ -32,7 +32,14 @@
 			"parameters": {
 				"to": [
 					"test@example.com"
-				]
+				],
+				"from": "geo-sensors-gateway@ytotech.com",
+				"subject": "GeoSensors event received",
+				"smtp": {
+					"hostname": "smtp.gmail.com",
+					"username": "mymail@gmail.com",
+					"password": "mypassword"
+				}
 			}
 		},
 		"google_sheet": {

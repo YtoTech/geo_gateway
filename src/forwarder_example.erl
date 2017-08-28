@@ -23,10 +23,6 @@ forward(Payload, User, Device, Forwarders) ->
 					io:format("Forwarder ~p~n", [Forwarder]),
 					Module = binary_to_atom(maps:get(module, Forwarder), unicode),
 					io:format("Forwarder ~s~n", [Module]),
-					% TODO Get forwarder module.
-					% (get_handler(maps:get(module, Forwarder))):forward(
-					% 	Payload, User, Device, Forwarder
-					% );
 					case code:ensure_loaded(Module) of
 						{module, Module} ->
 							% TODO Handle error?

@@ -9,4 +9,8 @@
  {<<"jiffy">>,
   {git,"git://github.com/davisp/jiffy.git",
        {ref,"8461d0897281b4527906703ffe87b30bb5c3a2fc"}},
+  0},
+ {<<"nested">>,
+  {git,"git://github.com/odo/nested.git",
+       {ref,"64cafcbacfddfdbff5163cd83c318dfa60489d97"}},
   0}].

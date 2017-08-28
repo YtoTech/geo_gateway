@@ -7,7 +7,8 @@
    [kernel,
     stdlib,
     eiconv,
-    gen_smtp
+    gen_smtp,
+    nested
    ]},
   {env,[]},
   {modules, [

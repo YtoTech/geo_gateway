@@ -51,8 +51,13 @@ start(_StartType, _StartArgs) ->
 		ConfigurationFileContent, [return_maps, use_nil]
 	),
 	% Parse and reformat configuration.
+	% TODO Make it recursive?
 	MapKeyToAtom = fun(Key, Value, NewMap) ->
-		maps:put(binary_to_atom(Key, unicode), Value, NewMap)
+		maps:put(
+			binary_to_atom(Key, unicode),
+			Value,
+			NewMap
+		)
 	end,
 	Users = maps:map(
 		fun(_Username, User) ->
