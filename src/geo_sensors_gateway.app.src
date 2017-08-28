@@ -7,6 +7,7 @@
    [kernel,
     stdlib,
     eiconv,
+    jiffy,
     gen_smtp,
     nested
    ]},
