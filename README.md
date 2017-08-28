@@ -44,3 +44,9 @@ TODO Add unit test for:
 	* Invalid mail
 	* Sensor not managed
 	* Valid mail for Ercogener GenLoc
+TODO Forwarder examples:
+* dumping (raw and parsed);
+* to a list of mails;
+* to a Google Sheet;
+* to https://www.mapbox.com/api-documentation/#datasets
+* POST to custom API endpoint
