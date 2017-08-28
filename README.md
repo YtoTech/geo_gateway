@@ -35,6 +35,8 @@ TODO Rename project on GitHub to Erlang non-quoted atom `geo_sensors_gateway`.
 
 % TODO Use error_logger:info_msg("") for logging
 
+TODO Put examples in /doc/examples cf http://erlang.org/doc/design_principles/applications.html
+
 TODO Add unit test for:
 * Auth
     * Username does not match

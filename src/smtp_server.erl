@@ -131,8 +131,8 @@ handle_DATA(From, To, Data, State) ->
 	io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
 	% We always try to parse emails.
 	% Function to dump messages somewhere for analysis.
-	DumpToFile = fun(Path, Reference) ->
-		 File = Path++Reference++".eml",
+	DumpToFile = fun(Path, Name) ->
+		 File = Path++Name++".eml",
 		 io:format("Dump incoming message to ~s~n", [File]),
 		case filelib:ensure_dir(File) of
 			ok ->

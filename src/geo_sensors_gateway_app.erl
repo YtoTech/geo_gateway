@@ -34,9 +34,9 @@ start(_StartType, _StartArgs) ->
 	% TODO Use http://erlang.org/doc/apps/kernel/application.html#ensure_all_started-1
 	% TODO Is that to start in the supervision tree?
 	% Load authorized users from a json map.
-	% TODO In case it fails, just use an empty map? Not a lot of sense.
-	% Give a gentle message. Create a sample file users.json.sample.
+	% TODO Allow to load with no-users.
 	% TODO Create a provider for that and allows hot-reloading.
+	% TODO Allows to override configuration file path.
 	% The users are indexed by username, because we encounter
 	% first the AUTH in the process of receiving a mail.
 	ConfigurationFileContent = case file:read_file('configuration.json') of
