@@ -1,6 +1,6 @@
 %% @doc A simple example callback module for `device_payload_parser' that also serves as
 %% documentation for the required callback API.
-%% Responsible for parsing sensor paylods and extract all usefull information
+%% Responsible for parsing sensor payloads and extract all usefull information
 %% from them.
 %% This data will then be transferred to any endpoint by forwarders.
 

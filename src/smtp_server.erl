@@ -150,19 +150,23 @@ handle_DATA(From, To, Data, State) ->
 			io:format("User: ~p~n", [User]),
 			% Now parse the actual sensor payload.
 			% TODO Make this customizable.
-			% TODO Handle error.
 			case device_payload_parser_example:parse(
 				Body,
 				User,
 				proplists:get_value(devices, State#state.options, #{})
 			) of
 				{ok, Payload, Device} ->
-					io:format("Parsed payload: ~p", [Payload]);
-					% TODO When payload extracted from the mail,
+					io:format("Parsed payload: ~p~n", [Payload]),
+					% When payload extracted from the mail,
 					% give it to the forwarder module that will handle its
 					% transmission.
-					% (Add it to the transmission queue)
-					% ok = forwarder:forward(User, Payload),
+					% TODO Make this customizable.
+					ok = forwarder_example:forward(
+						Payload,
+						User,
+						Device,
+						proplists:get_value(forwarders, State#state.options, #{})
+					);
 				{error, Reason} ->
 					% TODO Dumps on error?
 					io:format("Error while parsing device payload: ~s~n", [Reason])

@@ -33,6 +33,8 @@ An OTP application
 
 TODO Rename project on GitHub to Erlang non-quoted atom `geo_sensors_gateway`.
 
+% TODO Use error_logger:info_msg("") for logging
+
 TODO Add unit test for:
 * Auth
     * Username does not match
