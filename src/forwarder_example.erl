@@ -29,7 +29,7 @@ forward(Payload, User, Device, Forwarders) ->
 							ok = Module:forward(
 								Payload, User, Device, Forwarder
 							);
-						{error, nofile} ->
+						{error, _Reason} ->
 							% TODO Or crash?
 							io:format("No module ~p for forwarder ~p: ignore~n", [Module, ForwarderId])
 					end;
