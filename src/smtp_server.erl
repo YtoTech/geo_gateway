@@ -151,20 +151,24 @@ handle_DATA(From, To, Data, State) ->
 			% Now parse the actual sensor payload.
 			% TODO Make this customizable.
 			% TODO Handle error.
-			{ok, Payload} = device_payload_parser_example:parse(
+			case device_payload_parser_example:parse(
 				Body,
 				User,
 				proplists:get_value(devices, State#state.options, #{})
-			),
-			io:format("Parsed payload: ~p", [Payload]),
-			% TODO When payload extracted from the mail,
-			% give it to the forwarder module that will handle its
-			% transmission.
-			% (Add it to the transmission queue)
-			% ok = forwarder:forward(User, Payload),
+			) of
+				{ok, Payload, Device} ->
+					io:format("Parsed payload: ~p", [Payload]);
+					% TODO When payload extracted from the mail,
+					% give it to the forwarder module that will handle its
+					% transmission.
+					% (Add it to the transmission queue)
+					% ok = forwarder:forward(User, Payload),
+				{error, Reason} ->
+					% TODO Dumps on error?
+					io:format("Error while parsing device payload: ~s~n", [Reason])
+			end,
 			% If dumping is enabled on the user, dump all messages, whatever the outcome.
 			% ---> Will be usefull for debugging. (And make the server iso with the Python one)
-			io:format("Message decoded successfully!~n"),
 			maps:get(dumps_raw, User, false)
 	catch
 		What:Why ->

@@ -12,7 +12,7 @@
 %% API
 -export([parse/3]).
 
--spec parse(Body :: binary(), User :: map(), Devices :: map()) -> {'ok', map()} | {'error', string()}.
+-spec parse(Body :: binary(), User :: map(), Devices :: map()) -> {'ok', map(), map()} | {'error', atom()}.
 parse(Body, User, Devices) ->
 	% Get the sensor type from user config
 	% and transfert to the appropriate parsing module.
@@ -21,9 +21,12 @@ parse(Body, User, Devices) ->
 			case Device of
 				#{manufacturer := <<"Ercogener">>, range := <<"GenLoc">>} ->
 					io:format("Erco"),
-					{ok, Body}
+					{ok, Body, Device};
+				_ ->
+					io:format("No parser for device ~p: ignore~n", [Device]),
+					{error, no_device_parser}
 			end;
 		_ ->
-			io:format("No device for user: ignore"),
-			erlang:error(no_device, "No device for user")
+			io:format("No device for user: ignore~n"),
+			{error, no_device}
 	end.
