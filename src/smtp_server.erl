@@ -130,37 +130,52 @@ handle_DATA(From, To, Data, State) ->
 	% We do not relay emails but process them.
 	io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
 	% We always try to parse emails.
-	% TODO If dumping is enabled, dump all messages.
-	% ---> Will be usefull for debugging. (And make the server iso with the Python one)
-	try mimemail:decode(Data) of
+	% Function to dump messages somewhere for analysis.
+	DumpToFile = fun(Path, Reference) ->
+		 File = Path++Reference++".eml",
+		 io:format("Dump incoming message to ~s~n", [File]),
+		case filelib:ensure_dir(File) of
+			ok ->
+				file:write_file(File, Data);
+			_ ->
+				ok
+		end
+	end,
+	DumpsRawMessage = try mimemail:decode(Data) of
 		{_Type, _SubType, Headers, _Properties, Body} ->
 			io:format("From: ~s~nTo: ~s~n", [From, To]),
 			io:format("Headers: ~p~n", [Headers]),
 			io:format("Body: ~s~n", [Body]),
-			% TODO Get the sensor type from user config
-			% and transfert to the appropriate parsing module.
-			% {ok, Payload} = mailparser:parse(User, Body),
+			User = State#state.user,
+			io:format("User: ~p~n", [User]),
+			% Now parse the actual sensor payload.
+			% TODO Make this customizable.
+			% TODO Handle error.
+			{ok, Payload} = device_payload_parser_example:parse(
+				Body,
+				User,
+				proplists:get_value(devices, State#state.options, #{})
+			),
+			io:format("Parsed payload: ~p", [Payload]),
 			% TODO When payload extracted from the mail,
 			% give it to the forwarder module that will handle its
 			% transmission.
 			% (Add it to the transmission queue)
 			% ok = forwarder:forward(User, Payload),
-			io:format("Message decoded successfully!~n")
+			% If dumping is enabled on the user, dump all messages, whatever the outcome.
+			% ---> Will be usefull for debugging. (And make the server iso with the Python one)
+			io:format("Message decoded successfully!~n"),
+			maps:get(dumps_raw, User, false)
 	catch
 		What:Why ->
 			io:format("Message decode FAILED with ~p:~p~n", [What, Why]),
-			case proplists:get_value(dump, State#state.options, false) of
-			false -> ok;
-			true ->
-				%% optionally dump the failed email somewhere for analysis
-				File = "dump/"++Reference++".eml",
-				case filelib:ensure_dir(File) of
-					ok ->
-						file:write_file(File, Data);
-					_ ->
-						ok
-				end
-			end
+			proplists:get_value(dump, State#state.options, false)
+	end,
+	case DumpsRawMessage  of
+		false ->
+			ok;
+		true ->
+			DumpToFile("dump/", Reference)
 	end,
 	% At this point, if we return ok, we've accepted responsibility for the email
 	{ok, Reference, State}.

@@ -19,4 +19,4 @@ _build
 .idea
 rebar3.crashdump
 dump/
-users.json
+configuration.json

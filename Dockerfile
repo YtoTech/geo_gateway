@@ -17,11 +17,11 @@ RUN chmod a+x /usr/bin/rebar3
 RUN mkdir -p /home/geo-sensors-gateway
 WORKDIR /home/geo-sensors-gateway
 
-# TODO Do not copy users.json. Use another way to provide it?
+# TODO Do not copy configuration.json. Use another way to provide it?
 # Mount directory? We can put it in a config sub-direct so we can mount it only.
 # Implement a provider fetching from web?
 # Local file still should be a way to get started.
-COPY rebar.config rebar.lock Makefile users.json /home/geo-sensors-gateway/
+COPY rebar.config rebar.lock Makefile configuration.json /home/geo-sensors-gateway/
 COPY src/* /home/geo-sensors-gateway/src/
 
 # Expose relevant ports.

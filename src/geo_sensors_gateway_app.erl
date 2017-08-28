@@ -39,9 +39,21 @@ start(_StartType, _StartArgs) ->
 	% TODO Create a provider for that and allows hot-reloading.
 	% The users are indexed by username, because we encounter
 	% first the AUTH in the process of receiving a mail.
-	{ok, UserFileContent} = file:read_file('users.json'),
-	UsersAsJson = jiffy:decode(UserFileContent, [return_maps]),
-	% Parse and reformat users.
+	ConfigurationFileContent = case file:read_file('configuration.json') of
+		{ok, CFC} ->
+			CFC;
+		_ ->
+			io:format("Failed to open configuration.json.~nYou can create a
+			configuration using example configuration.json.sample.~n"),
+			erlang:error(no_configuration)
+	end,
+	ConfigurationAsJson = jiffy:decode(
+		ConfigurationFileContent, [return_maps, use_nil]
+	),
+	% Parse and reformat configuration.
+	MapKeyToAtom = fun(Key, Value, NewMap) ->
+		maps:put(binary_to_atom(Key, unicode), Value, NewMap)
+	end,
 	Users = maps:map(
 		fun(_Username, User) ->
 			% TODO Handle non-authenticated mode?
@@ -52,12 +64,55 @@ start(_StartType, _StartArgs) ->
 			% When the auth is right, we can assume we are fine.
 			#{
 				password => maps:get(<<"password">>, User),
-				email => maps:get(<<"email">>, User)
+				email => maps:get(<<"email">>, User),
+				device => maps:get(<<"device">>, User),
+				forwarders => maps:get(<<"forwarders">>, User, []),
+				dumps_raw => maps:get(<<"dumps_raw">>, User, false)
 			}
 		end,
-		UsersAsJson
+		maps:get(<<"users">>, ConfigurationAsJson)
+	),
+	Users = maps:map(
+		fun(_Username, User) ->
+			% TODO Handle non-authenticated mode?
+			% We make here the assumption that we have one email handled
+			% by each username. (An username could allow to handle many
+			% mails).
+			% TODO Do we really care and want to filter by emails?
+			% When the auth is right, we can assume we are fine.
+			#{
+				password => maps:get(<<"password">>, User),
+				email => maps:get(<<"email">>, User),
+				device => maps:get(<<"device">>, User),
+				forwarders => maps:get(<<"forwarders">>, User, []),
+				dumps_raw => maps:get(<<"dumps_raw">>, User, false)
+			}
+		end,
+		maps:get(<<"users">>, ConfigurationAsJson, {})
 	),
 	io:format("Users ~p ~n", [Users]),
+	Devices = maps:map(
+		fun(_DeviceId, Device) ->
+			#{
+				manufacturer => maps:get(<<"manufacturer">>, Device),
+				range => maps:get(<<"range">>, Device),
+				model => maps:get(<<"model">>, Device),
+				parameters => maps:fold(MapKeyToAtom, #{}, maps:get(<<"parameters">>, Device, []))
+			}
+		end,
+		maps:get(<<"devices">>, ConfigurationAsJson, {})
+	),
+	io:format("Devices ~p ~n", [Devices]),
+	Forwarders = maps:map(
+		fun(_ForwarderId, Forwarder) ->
+			#{
+				module => maps:get(<<"module">>, Forwarder),
+				parameters => maps:fold(MapKeyToAtom, #{}, maps:get(<<"parameters">>, Forwarder, []))
+			}
+		end,
+		maps:get(<<"forwarders">>, ConfigurationAsJson, {})
+	),
+	io:format("Forwarders ~p ~n", [Forwarders]),
 	{ok,_} = gen_smtp_server:start(smtp_server, [[
 		% TODO Allows configuration of port. Default to 2525.
 		{port, 2525},
@@ -66,7 +121,9 @@ start(_StartType, _StartArgs) ->
 				[
 					{auth, true},
 					{dump, true},
-					{users, Users}
+					{users, Users},
+					{devices, Devices},
+					{forwarders, Forwarders}
 				]
 			}]
 		}

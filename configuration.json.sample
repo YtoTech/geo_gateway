@@ -1,0 +1,45 @@
+{
+	"users": {
+		"annon": {
+			"email": "test@ytotech.com",
+			"password": "coincoin",
+			"device": "ercogener_genloc_341e",
+			"dumps_raw": true,
+			"forwarders": [
+				"file_dump",
+				"mail"
+			]
+		}
+	},
+	"devices": {
+		"ercogener_genloc_341e": {
+			"manufacturer": "Ercogener",
+			"range": "GenLoc",
+			"model": "451e EaseLoc",
+			"parameters": {
+			}
+		}
+	},
+	"forwarders": {
+		"file_dump": {
+			"module": "example_forwarder_file_dump",
+			"parameters": {
+				"path": "dumps/"
+			}
+		},
+		"mail": {
+			"module": "example_forwarder_mail",
+			"parameters": {
+				"to": [
+					"test@example.com"
+				]
+			}
+		},
+		"google_sheet": {
+			"module": "example_forwarder_google_sheet",
+			"parameters": {
+				"sheetname": "example"
+			}
+		}
+	}
+}

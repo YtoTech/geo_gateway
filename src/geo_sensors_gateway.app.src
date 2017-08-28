@@ -11,7 +11,8 @@
    ]},
   {env,[]},
   {modules, [
-    smtp_server
+    smtp_server,
+    device_payload_parser_example
   ]},
 
   {maintainers, ["Yoan Tournade"]},
