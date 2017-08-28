@@ -25,7 +25,7 @@ COPY rebar.config rebar.lock Makefile /home/geo-sensors-gateway/
 COPY src/* /home/geo-sensors-gateway/src/
 
 RUN make release
-COPY configuration.json /home/geo-sensors-gateway/_build/prod/rel/GeoSensorsGateway
+COPY configuration.json /home/geo-sensors-gateway/_build/prod/rel/GeoSensorsGateway/
 
 # Expose relevant ports.
 # Switch to 25
