@@ -21,12 +21,15 @@ WORKDIR /home/geo-sensors-gateway
 # Mount directory? We can put it in a config sub-direct so we can mount it only.
 # Implement a provider fetching from web?
 # Local file still should be a way to get started.
-COPY rebar.config rebar.lock Makefile configuration.json /home/geo-sensors-gateway/
+COPY rebar.config rebar.lock Makefile /home/geo-sensors-gateway/
 COPY src/* /home/geo-sensors-gateway/src/
+
+RUN make release
+COPY configuration.json /home/geo-sensors-gateway/_build/prod/rel/GeoSensorsGateway
 
 # Expose relevant ports.
 # Switch to 25
 EXPOSE 25
 
 # TODO Use rebar3 as prod release
-CMD ["rebar3", "as", "prod", "shell", "--apps", "geo_sensors_gateway"]
+CMD ["make", "start"]

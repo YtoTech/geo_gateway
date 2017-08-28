@@ -1,11 +1,14 @@
 compile:
 	rebar3 compile
 
-start:
-	rebar3 shell --apps geo_sensors_gateway
-
 dev:
 	rebar3 as dev auto --apps geo_sensors_gateway
+
+release:
+	rebar3 as prod release
+
+start:
+	_build/prod/rel/GeoSensorsGateway/bin/GeoSensorsGateway foreground
 
 docker-build:
 	docker build -t geo-sensors-gateway .
