@@ -20,5 +20,5 @@
 
     {maintainers, ["Yoan Tournade"]},
     {licenses, ["GPL v3"]},
-    {links, [{"GitHub","https://github.com/YtoTech/geo-sensors-gateway"}]}
+    {links, [{"GitHub","https://github.com/YtoTech/geo_sensors_gateway"}]}
 ]}.
