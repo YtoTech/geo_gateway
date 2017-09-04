@@ -24,3 +24,6 @@ docker-remove:
 
 docker-log:
 	docker logs -f geo-sensors-gateway
+
+lint:
+	rebar3 dialyzer
