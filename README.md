@@ -2,6 +2,8 @@
 
 > Receive and redistribute data from vehicle geolocation sensors.
 
+[![Build Status](https://travis-ci.org/YtoTech/geo-sensors-gateway.svg?branch=master)](https://travis-ci.org/YtoTech/geo-sensors-gateway)
+
 Prototyping project to receive data from remote Ercogener Genloc sensors.
 
 Try to receive data from TCP:
