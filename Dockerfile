@@ -31,5 +31,4 @@ COPY configuration.json /home/geo-sensors-gateway/_build/prod/rel/GeoSensorsGate
 # Switch to 25
 EXPOSE 25
 
-# TODO Use rebar3 as prod release
 CMD ["make", "start"]
