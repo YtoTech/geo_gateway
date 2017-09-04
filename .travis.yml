@@ -2,7 +2,9 @@ language: erlang
 sudo: false
 install:
   - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
-script: "make lint && make test"
+script:
+  - "make lint"
+  - "make test"
 otp_release:
   - 20.0
   - 19.3
