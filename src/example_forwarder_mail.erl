@@ -11,7 +11,7 @@
 %% API
 -export([forward/4]).
 
--spec forward(Payload :: map(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok' | 'error'.
+-spec forward(Payload :: map(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
 forward(Payload, User, Device, Forwarder) ->
 	% TODO Do forward in another process.
 	% Basically add to a queue using Erlang messages.
