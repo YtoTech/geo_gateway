@@ -1,16 +1,18 @@
-[{<<"eiconv">>,
-  {git,"git://github.com/zotonic/eiconv.git",
-       {ref,"bf2421e7ced68e2654321f3b02494ccf3653a33c"}},
-  0},
+{"1.1.0",
+[{<<"eiconv">>,{pkg,<<"eiconv">>,<<"1.0.0-alpha1">>},0},
  {<<"gen_smtp">>,
   {git,"git://github.com/YtoTech/gen_smtp.git",
-       {ref,"6a72f25572018c854bbc78e5e50cf91fc2a39112"}},
+       {ref,"5cceb796496d29f76672c9f199b715ddf5e3d626"}},
   0},
  {<<"jiffy">>,
   {git,"git://github.com/davisp/jiffy.git",
-       {ref,"8461d0897281b4527906703ffe87b30bb5c3a2fc"}},
+       {ref,"e19df02c650e71ec16202e473427c7e4f1a70398"}},
   0},
  {<<"nested">>,
   {git,"git://github.com/odo/nested.git",
        {ref,"64cafcbacfddfdbff5163cd83c318dfa60489d97"}},
-  0}].
+  0}]}.
+[
+{pkg_hash,[
+ {<<"eiconv">>, <<"547DA4B8ABB5C85EE8E47D7B9EBFCA77016B03F2869DEDC91A0F0177AB67EBC4">>}]}
+].
