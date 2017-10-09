@@ -84,40 +84,54 @@ parse_nmea(<<"GPLOC">>, Line) ->
 		format => <<"GPLOC">>,
 		status => array:get(1, Elements),
 		fix_quality => array:get(2, Elements),
-		% TODO Get a normalized timestamp.
 		time => array:get(3, Elements),
-		% TODO Get normalized lat and long.
-		latitude => sexagesimalTodecimal(array:get(4, Elements), array:get(5, Elements)),
-		longitude => sexagesimalTodecimal(array:get(6, Elements), array:get(7, Elements)),
+		% TODO Get a normalized timestamp.
+		% How to determine timestamp? We can not be sure the trame is
+		% from today.
+		timestamp => nil,
+		latitude => sexagesimal_to_decimal(array:get(4, Elements), array:get(5, Elements)),
+		longitude => sexagesimal_to_decimal(array:get(6, Elements), array:get(7, Elements)),
 		raw => Line
 	}};
 parse_nmea(<<"GPRMC">>, Line) ->
 	io:format("GPRMC: ~s~n", [Line]),
 	Splitted = string:split(Line, <<",">>, all),
 	Elements = array:from_list(Splitted),
+	Date = parse_date_ddmmyy(array:get(9, Elements)),
 	{ok, #{
 		format => <<"GPRMC">>,
-		% TODO Get a normalized timestamp.
 		time => array:get(1, Elements),
+		date => Date,
+		% TODO Get a normalized timestamp.
+		timestamp => {
+			Date,
+			{4,5,7}
+		},
 		status => array:get(2, Elements),
-		% TODO Get normalized lat and long.
-		latitude => sexagesimalTodecimal(array:get(3, Elements), array:get(4, Elements)),
-		longitude => sexagesimalTodecimal(array:get(5, Elements), array:get(6, Elements)),
-		date => array:get(9, Elements),
+		latitude => sexagesimal_to_decimal(array:get(3, Elements), array:get(4, Elements)),
+		longitude => sexagesimal_to_decimal(array:get(5, Elements), array:get(6, Elements)),
 		raw => Line
 	}}.
+
+
+parse_date_ddmmyy(Date) ->
+	% TODO Stuck in 20XX? Please see the past and future.
+	{Day, _} = string:to_integer(string:slice(Date, 0, 2)),
+	{Month, _} = string:to_integer(string:slice(Date, 2, 2)),
+	{Year, _} = string:to_integer(erlang:iolist_to_binary([<<"20">> ,string:slice(Date, 4)])),
+	{Year, Month, Day}.
 
 % TODO Create a library for doing geo conversion in Erlang.
 % https://github.com/manuelbieh/Geolib#geolibsexagesimal2decimalstring-coord
 % TODO Manage error cases.
--spec sexagesimalTodecimal(Sexagesimal :: binary(), Cardinality :: binary()) -> float() | nil().
-sexagesimalTodecimal(<<"">>, <<"">>) ->
+-spec sexagesimal_to_decimal(Sexagesimal :: binary(), Cardinality :: binary()) -> float() | nil().
+sexagesimal_to_decimal(<<"">>, <<"">>) ->
 	nil;
-sexagesimalTodecimal(Sexagesimal, Cardinality) ->
+sexagesimal_to_decimal(Sexagesimal, Cardinality) ->
 	% TODO How to switch between DDM and DMS?
-	ddmTodecimal(Sexagesimal, Cardinality).
+	ddm_to_decimal(Sexagesimal, Cardinality).
 
-ddmTodecimal(Sexagesimal, Cardinality) ->
+ddm_to_decimal(Sexagesimal, Cardinality) ->
 	io:format("Sexagesimal: ~p Cardinality: ~p ~n", [Sexagesimal,Cardinality]),
 	{Degrees, _} = string:to_integer(string:slice(Sexagesimal, 0, 2)),
 	{Minutes, _} = string:to_float(string:slice(Sexagesimal, 2)),
@@ -130,7 +144,7 @@ ddmTodecimal(Sexagesimal, Cardinality) ->
 		<<"E">> -> DecimalNoCardinality
 	end.
 
-dmsTodecimal(Sexagesimal, Cardinality) ->
+dms_to_decimal(Sexagesimal, Cardinality) ->
 	% TODO Broken. Should parse 44°34'20.7"N 0°46'26.4"E
 	io:format("Sexagesimal: ~p Cardinality: ~p ~n", [Sexagesimal,Cardinality]),
 	[Ddmm, Mmmmm] = string:split(Sexagesimal, <<".">>),
