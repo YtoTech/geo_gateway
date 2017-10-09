@@ -182,7 +182,8 @@ handle_DATA(From, To, Data, State) ->
 		false ->
 			ok;
 		true ->
-			DumpToFile("dump/", Reference)
+			% TODO Allows configuration.
+			DumpToFile("dumps/", Reference)
 	end,
 	% At this point, if we return ok, we've accepted responsibility for the email
 	{ok, Reference, State}.
