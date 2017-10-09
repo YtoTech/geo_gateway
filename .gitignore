@@ -20,3 +20,4 @@ _build
 rebar3.crashdump
 dump/
 configuration.json
+dumps/
