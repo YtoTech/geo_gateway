@@ -36,32 +36,33 @@ parse_genloc(Body, User, Device) ->
 	% Prepare input: split by lines and trim them.
 	Lines = string:split(Body, "\n", all),
 	TrimedLines = lists:map(fun (Line) -> string:trim(Line) end, Lines),
-	% We consider only (non-empty) lines that begins by $GPLOC.
-	% TODO Make the Regex configurable.
+	% We consider only (non-empty) lines.
 	PayloadLines = lists:filtermap(
-		fun (Line) ->
-			io:format("Line: ~s~n", [Line]),
-			case string:find(Line, "$GPLOC") of
-				nomatch -> false;
-				_ -> true
-			end
-		end,
+		fun (Line) -> not string:is_empty(Line) end,
 		TrimedLines
 	),
-	io:format("~p~n", [PayloadLines]),
-	% TODO Use http://nmea.io/ with a NIF.
+	% TODO Create meta-mapping for parsing NMEA trames.
+	% Or use http://nmea.io/ with a NIF.
 	% Implement custom parsers.
 	% Parsing in C is ok if it return fast and return an error / null when
 	% the parsing fail.
-	% For the moment, use a Regex to parse.
-	RegExp = <<"">>,
+	% It is in any case a good idea to code these trame parsing from meta
+	% configuration that describe the format, as it is basically pair
+	% of key-value.
+	% --> So we can make it configurable.
+	io:format("~p~n", [PayloadLines]),
 	Payload = lists:map(
 		fun (Line) ->
-			case re:run(Line, RegExp) of
-				{match, Captured} ->
-					io:format("Match ~p~n", [Captured]),
-					#{};
-				nomatch -> nomatch
+			io:format("Line: ~s~n", [Line]),
+			% case string:find(Line, "$GPLOC") of
+			% 	nomatch -> false;
+			% 	_ -> true
+			% end
+			case Line of
+				"$GPLOC," ++ Str ->
+					io:format("GPLOC: ~s~n", [Str]),
+					ok;
+				_ -> momatch
 			end
 		end,
 		PayloadLines
