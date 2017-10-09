@@ -61,6 +61,8 @@ parse_genloc(Body, User, Device) ->
 			case string:split(Line, <<",">>) of
 				[<<"$GPLOC">>,_] ->
 					parse_nmea(<<"GPLOC">>, Line);
+				[<<"$GPRMC">>,_] ->
+					parse_nmea(<<"GPRMC">>, Line);
 				_ ->
 					% TODO Do something: the forwarder may choose to alert
 					% on failed parsing.
@@ -82,9 +84,25 @@ parse_nmea(<<"GPLOC">>, Line) ->
 		format => <<"GPLOC">>,
 		status => array:get(1, Elements),
 		fix_quality => array:get(2, Elements),
-		% TODO Get a normalized timestamp?
+		% TODO Get a normalized timestamp.
 		time => array:get(3, Elements),
+		% TODO Get normalized lat and long.
 		latitude => erlang:iolist_to_binary([array:get(4, Elements), <<",">>, array:get(5, Elements)]),
 		longitude => erlang:iolist_to_binary([array:get(6, Elements), <<",">>, array:get(7, Elements)]),
+		raw => Line
+	}};
+parse_nmea(<<"GPRMC">>, Line) ->
+	io:format("GPRMC: ~s~n", [Line]),
+	Splitted = string:split(Line, <<",">>, all),
+	Elements = array:from_list(Splitted),
+	{ok, #{
+		format => <<"GPRMC">>,
+		% TODO Get a normalized timestamp.
+		time => array:get(1, Elements),
+		status => array:get(2, Elements),
+		% TODO Get normalized lat and long.
+		latitude => erlang:iolist_to_binary([array:get(3, Elements), <<",">>, array:get(4, Elements)]),
+		longitude => erlang:iolist_to_binary([array:get(5, Elements), <<",">>, array:get(6, Elements)]),
+		date => array:get(9, Elements),
 		raw => Line
 	}}.
