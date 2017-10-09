@@ -76,19 +76,15 @@ parse_genloc(Body, User, Device) ->
 -spec parse_nmea(Type :: binary(), Line :: binary()) -> {'ok', map()} | {'error', atom()}.
 parse_nmea(<<"GPLOC">>, Line) ->
 	io:format("GPLOC: ~s~n", [Line]),
-	[_, Remaining] = string:split(Line, <<",">>),
-	ToParse = string:split(Remaining, <<",">>, all),
-	io:format("ToParse: ~p~n", [ToParse]),
-	ToParseTuples = nmea_list_to_tuples(ToParse),
-	io:format("ToParseTuples: ~p~n", [ToParseTuples]),
-	% lists:map(
-	% 	fun (ToParse) ->
-	% 		case
-	% )
-	{ok, Line}.
-
--spec nmea_list_to_tuples(Type :: list()) -> {list()}.
-nmea_list_to_tuples(List) ->
-	WithoutLast = lists:droplast(List),
-	[_ | WithoutFirst] = List,
-	lists:zip(WithoutLast, WithoutFirst).
+	Splitted = string:split(Line, <<",">>, all),
+	Elements = array:from_list(Splitted),
+	{ok, #{
+		format => <<"GPLOC">>,
+		status => array:get(1, Elements),
+		fix_quality => array:get(2, Elements),
+		% TODO Get a normalized timestamp?
+		time => array:get(3, Elements),
+		latitude => erlang:iolist_to_binary([array:get(4, Elements), <<",">>, array:get(5, Elements)]),
+		longitude => erlang:iolist_to_binary([array:get(6, Elements), <<",">>, array:get(7, Elements)]),
+		raw => Line
+	}}.
