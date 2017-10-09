@@ -20,8 +20,8 @@ parse(Body, User, Devices) ->
 		{ok, Device} ->
 			case Device of
 				#{manufacturer := <<"Ercogener">>, range := <<"GenLoc">>} ->
-					io:format("Erco"),
-					{ok, Body, Device};
+					{ok, ParsedPayload} = parse_genloc(Body, User, Device),
+					{ok, ParsedPayload, Device};
 				_ ->
 					io:format("No parser for device ~p: ignore~n", [Device]),
 					{error, no_device_parser}
@@ -30,3 +30,41 @@ parse(Body, User, Devices) ->
 			io:format("No device for user: ignore~n"),
 			{error, no_device}
 	end.
+
+parse_genloc(Body, User, Device) ->
+	io:format("~p~n", [Body]),
+	% Prepare input: split by lines and trim them.
+	Lines = string:split(Body, "\n", all),
+	TrimedLines = lists:map(fun (Line) -> string:trim(Line) end, Lines),
+	% We consider only (non-empty) lines that begins by $GPLOC.
+	% TODO Make the Regex configurable.
+	PayloadLines = lists:filtermap(
+		fun (Line) ->
+			io:format("Line: ~s~n", [Line]),
+			case string:find(Line, "$GPLOC") of
+				nomatch -> false;
+				_ -> true
+			end
+		end,
+		TrimedLines
+	),
+	io:format("~p~n", [PayloadLines]),
+	% TODO Use http://nmea.io/ with a NIF.
+	% Implement custom parsers.
+	% Parsing in C is ok if it return fast and return an error / null when
+	% the parsing fail.
+	% For the moment, use a Regex to parse.
+	RegExp = <<"">>,
+	Payload = lists:map(
+		fun (Line) ->
+			case re:run(Line, RegExp) of
+				{match, Captured} ->
+					io:format("Match ~p~n", [Captured]),
+					#{};
+				nomatch -> nomatch
+			end
+		end,
+		PayloadLines
+	),
+	io:format("~p~n", [Payload]),
+	{ok, Payload}.
