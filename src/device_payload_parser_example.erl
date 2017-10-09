@@ -10,10 +10,10 @@
 % -behaviour(device_payload_parser).
 
 %% API
--export([parse/3]).
+-export([parse/4]).
 
--spec parse(Body :: binary(), User :: map(), Devices :: map()) -> {'ok', map(), map()} | {'error', atom()}.
-parse(Body, User, Devices) ->
+-spec parse(Reference :: binary(), Body :: binary(), User :: map(), Devices :: map()) -> {'ok', map(), map()} | {'error', atom()}.
+parse(_Reference, Body, User, Devices) ->
 	% Get the sensor type from user config
 	% and transfert to the appropriate parsing module.
 	case maps:find(maps:get(device, User), Devices) of

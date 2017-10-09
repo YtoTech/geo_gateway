@@ -148,6 +148,7 @@ handle_DATA(From, To, Data, State) ->
 			% Now parse the actual sensor payload.
 			% TODO Make this customizable.
 			case device_payload_parser_example:parse(
+				Reference,
 				Body,
 				User,
 				proplists:get_value(devices, State#state.options, #{})
@@ -159,6 +160,7 @@ handle_DATA(From, To, Data, State) ->
 					% transmission.
 					% TODO Make this customizable.
 					ok = forwarder_example:forward(
+						Reference,
 						Payload,
 						User,
 						Device,

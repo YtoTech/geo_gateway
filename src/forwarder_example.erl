@@ -9,10 +9,10 @@
 % -behaviour(forwarder).
 
 %% API
--export([forward/4]).
+-export([forward/5]).
 
--spec forward(Payload :: map(), User :: map(), Device :: map(), Forwarders :: list()) -> 'ok'.
-forward(Payload, User, Device, Forwarders) ->
+-spec forward(Reference :: binary(), Payload :: map(), User :: map(), Device :: map(), Forwarders :: list()) -> 'ok'.
+forward(Reference, Payload, User, Device, Forwarders) ->
 	% Get the forwarders from user config and transfer the payload to each of
 	% them.
 	% TODO (Add it to the transmission queue)
@@ -27,7 +27,7 @@ forward(Payload, User, Device, Forwarders) ->
 						{module, Module} ->
 							% TODO Handle error?
 							ok = Module:forward(
-								Payload, User, Device, Forwarder
+								Reference, Payload, User, Device, Forwarder
 							);
 						{error, _Reason} ->
 							% TODO Or crash?

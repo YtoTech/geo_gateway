@@ -9,10 +9,10 @@
 % -behaviour(forwarder).
 
 %% API
--export([forward/4]).
+-export([forward/5]).
 
--spec forward(Payload :: map(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
-forward(Payload, _User, _Device, Forwarder) ->
+-spec forward(Reference :: binary(), Payload :: map(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
+forward(_Reference, Payload, _User, _Device, Forwarder) ->
 	% TODO Do forward in another process.
 	% Basically add to a queue using Erlang messages.
 	% Create one new process per forwarding?
