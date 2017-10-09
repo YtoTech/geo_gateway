@@ -114,11 +114,29 @@ parse_nmea(<<"GPRMC">>, Line) ->
 sexagesimalTodecimal(<<"">>, <<"">>) ->
 	nil;
 sexagesimalTodecimal(Sexagesimal, Cardinality) ->
+	% TODO How to switch between DDM and DMS?
+	ddmTodecimal(Sexagesimal, Cardinality).
+
+ddmTodecimal(Sexagesimal, Cardinality) ->
+	io:format("Sexagesimal: ~p Cardinality: ~p ~n", [Sexagesimal,Cardinality]),
+	{Degrees, _} = string:to_integer(string:slice(Sexagesimal, 0, 2)),
+	{Minutes, _} = string:to_float(string:slice(Sexagesimal, 2)),
+	io:format("Degrees: ~p Minutes: ~p ~n", [Degrees,Minutes]),
+	DecimalNoCardinality = Degrees + Minutes / 60,
+	case Cardinality of
+		<<"S">> -> -DecimalNoCardinality;
+		<<"W">> -> -DecimalNoCardinality;
+		<<"N">> -> DecimalNoCardinality;
+		<<"E">> -> DecimalNoCardinality
+	end.
+
+dmsTodecimal(Sexagesimal, Cardinality) ->
+	% TODO Broken. Should parse 44°34'20.7"N 0°46'26.4"E
 	io:format("Sexagesimal: ~p Cardinality: ~p ~n", [Sexagesimal,Cardinality]),
 	[Ddmm, Mmmmm] = string:split(Sexagesimal, <<".">>),
 	{Degrees, _} = string:to_integer(string:slice(Ddmm, 0, 2)),
 	{Minutes, _} = string:to_integer(string:slice(Ddmm, 2)),
-	{Secondes, _} = string:to_integer(Mmmmm),
+	{Secondes, _} = string:to_float(string:slice(Mmmmm, 0, 2)),
 	io:format("Degrees: ~p Minutes: ~p Secondes: ~p~n", [Degrees,Minutes,Secondes]),
 	DecimalNoCardinality = Degrees + Minutes / 60 + Secondes / 3600,
 	case Cardinality of
