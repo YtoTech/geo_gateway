@@ -13,9 +13,13 @@
     ]},
     {env,[]},
     {modules, [
-        smtp_server,
         device_payload_parser_example,
-        forwarder_example
+        example_forwarder_file_dump,
+        example_forwarder_mail,
+        forwarder_example,
+        geo_sensors_gateway_app,
+        geo_sensors_gateway_sup,
+        smtp_server
     ]},
 
     {maintainers, ["Yoan Tournade"]},
