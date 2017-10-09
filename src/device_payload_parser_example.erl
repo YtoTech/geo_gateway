@@ -87,8 +87,8 @@ parse_nmea(<<"GPLOC">>, Line) ->
 		% TODO Get a normalized timestamp.
 		time => array:get(3, Elements),
 		% TODO Get normalized lat and long.
-		latitude => erlang:iolist_to_binary([array:get(4, Elements), <<",">>, array:get(5, Elements)]),
-		longitude => erlang:iolist_to_binary([array:get(6, Elements), <<",">>, array:get(7, Elements)]),
+		latitude => sexagesimalTodecimal(array:get(4, Elements), array:get(5, Elements)),
+		longitude => sexagesimalTodecimal(array:get(6, Elements), array:get(7, Elements)),
 		raw => Line
 	}};
 parse_nmea(<<"GPRMC">>, Line) ->
@@ -102,7 +102,7 @@ parse_nmea(<<"GPRMC">>, Line) ->
 		status => array:get(2, Elements),
 		% TODO Get normalized lat and long.
 		latitude => sexagesimalTodecimal(array:get(3, Elements), array:get(4, Elements)),
-		longitude => erlang:iolist_to_binary([array:get(5, Elements), <<",">>, array:get(6, Elements)]),
+		longitude => sexagesimalTodecimal(array:get(5, Elements), array:get(6, Elements)),
 		date => array:get(9, Elements),
 		raw => Line
 	}}.
@@ -110,12 +110,12 @@ parse_nmea(<<"GPRMC">>, Line) ->
 % TODO Create a library for doing geo conversion in Erlang.
 % https://github.com/manuelbieh/Geolib#geolibsexagesimal2decimalstring-coord
 % TODO Manage error cases.
--spec sexagesimalTodecimal(Sexagesimal :: binary(), Cardinality :: binary()) -> float().
+-spec sexagesimalTodecimal(Sexagesimal :: binary(), Cardinality :: binary()) -> float() | nil().
+sexagesimalTodecimal(<<"">>, <<"">>) ->
+	nil;
 sexagesimalTodecimal(Sexagesimal, Cardinality) ->
-	io:format("Sexagesimal: ~p~n", [Sexagesimal]),
+	io:format("Sexagesimal: ~p Cardinality: ~p ~n", [Sexagesimal,Cardinality]),
 	[Ddmm, Mmmmm] = string:split(Sexagesimal, <<".">>),
-	io:format("Ddmm: ~p~n", [Ddmm]),
-	io:format("Mmmmm: ~p~n", [Mmmmm]),
 	{Degrees, _} = string:to_integer(string:slice(Ddmm, 0, 2)),
 	{Minutes, _} = string:to_integer(string:slice(Ddmm, 2)),
 	{Secondes, _} = string:to_integer(Mmmmm),
