@@ -59,7 +59,7 @@ parse_genloc(Body, User, Device) ->
 			% 	_ -> true
 			% end
 			case Line of
-				"$GPLOC," ++ Str ->
+				Line when string:find(Line, "$GPLOC") ->
 					io:format("GPLOC: ~s~n", [Str]),
 					ok;
 				_ -> momatch
