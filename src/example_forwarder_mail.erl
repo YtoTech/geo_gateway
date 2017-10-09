@@ -28,7 +28,7 @@ forward(_Reference, Payload, _User, _Device, Forwarder) ->
 					[Recipient],
 					% TODO Timestamp.
 					io_lib:format(
-						"Subject: ~s\r\nFrom: ~s \r\nTo: ~s \r\n\r\nA new message from your device\r\n\r\n~s\r\n\r\nCheers,\r\nyour GeoSensors bot.",
+						"Subject: ~s\r\nFrom: ~s \r\nTo: ~s \r\n\r\nA new message from your device\r\n\r\n~p\r\n\r\nCheers,\r\nyour GeoSensors bot.",
 						[
 							nested:get([parameters, subject], Forwarder, "GeoSensors event"),
 							From,
