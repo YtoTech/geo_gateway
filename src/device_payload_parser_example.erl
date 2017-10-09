@@ -80,11 +80,12 @@ parse_nmea(<<"GPLOC">>, Line) ->
 	io:format("GPLOC: ~s~n", [Line]),
 	Splitted = string:split(Line, <<",">>, all),
 	Elements = array:from_list(Splitted),
+	Time = parse_time_hhmmssmm(array:get(3, Elements)),
 	{ok, #{
 		format => <<"GPLOC">>,
 		status => array:get(1, Elements),
 		fix_quality => array:get(2, Elements),
-		time => array:get(3, Elements),
+		time => Time,
 		% TODO Get a normalized timestamp.
 		% How to determine timestamp? We can not be sure the trame is
 		% from today.
@@ -98,14 +99,15 @@ parse_nmea(<<"GPRMC">>, Line) ->
 	Splitted = string:split(Line, <<",">>, all),
 	Elements = array:from_list(Splitted),
 	Date = parse_date_ddmmyy(array:get(9, Elements)),
+	Time = parse_time_hhmmssmm(array:get(1, Elements)),
 	{ok, #{
 		format => <<"GPRMC">>,
-		time => array:get(1, Elements),
+		time => Time,
 		date => Date,
-		% TODO Get a normalized timestamp.
+		% Get a normalized timestamp.
 		timestamp => {
 			Date,
-			{4,5,7}
+			Time
 		},
 		status => array:get(2, Elements),
 		latitude => sexagesimal_to_decimal(array:get(3, Elements), array:get(4, Elements)),
@@ -118,8 +120,15 @@ parse_date_ddmmyy(Date) ->
 	% TODO Stuck in 20XX? Please see the past and future.
 	{Day, _} = string:to_integer(string:slice(Date, 0, 2)),
 	{Month, _} = string:to_integer(string:slice(Date, 2, 2)),
-	{Year, _} = string:to_integer(erlang:iolist_to_binary([<<"20">> ,string:slice(Date, 4)])),
+	{Year, _} = string:to_integer(erlang:iolist_to_binary([<<"20">>, string:slice(Date, 4)])),
 	{Year, Month, Day}.
+
+parse_time_hhmmssmm(Time) ->
+	{Hours, _} = string:to_integer(string:slice(Time, 0, 2)),
+	{Minutes, _} = string:to_integer(string:slice(Time, 2, 2)),
+	% Get mm?
+	{Seconds, _} = string:to_float(string:slice(Time, 4)),
+	{Hours, Minutes, Seconds}.
 
 % TODO Create a library for doing geo conversion in Erlang.
 % https://github.com/manuelbieh/Geolib#geolibsexagesimal2decimalstring-coord
