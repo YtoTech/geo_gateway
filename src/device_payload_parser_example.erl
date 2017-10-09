@@ -31,10 +31,11 @@ parse(Body, User, Devices) ->
 			{error, no_device}
 	end.
 
+-spec parse_genloc(Body :: binary(), User :: map(), Device :: map()) -> {'ok', map()} | {'error', atom()}.
 parse_genloc(Body, User, Device) ->
 	io:format("~p~n", [Body]),
 	% Prepare input: split by lines and trim them.
-	Lines = string:split(Body, "\n", all),
+	Lines = string:split(Body, <<"\n">>, all),
 	TrimedLines = lists:map(fun (Line) -> string:trim(Line) end, Lines),
 	% We consider only (non-empty) lines.
 	PayloadLines = lists:filtermap(
@@ -50,22 +51,44 @@ parse_genloc(Body, User, Device) ->
 	% configuration that describe the format, as it is basically pair
 	% of key-value.
 	% --> So we can make it configurable.
+	% Also Python alternative: https://github.com/Knio/pynmea2
+	% Other way is to create a micro-HTTP service dedicated to the task.
+	% --> This can help others and may be a service for geo-gateway.com.
 	io:format("~p~n", [PayloadLines]),
 	Payload = lists:map(
 		fun (Line) ->
 			io:format("Line: ~s~n", [Line]),
-			% case string:find(Line, "$GPLOC") of
-			% 	nomatch -> false;
-			% 	_ -> true
-			% end
-			case Line of
-				Line when string:find(Line, "$GPLOC") ->
-					io:format("GPLOC: ~s~n", [Str]),
-					ok;
-				_ -> momatch
+			case string:split(Line, <<",">>) of
+				[<<"$GPLOC">>,_] ->
+					parse_nmea(<<"GPLOC">>, Line);
+				_ ->
+					% TODO Do something: the forwarder may choose to alert
+					% on failed parsing.
+					io:format("momatch: ~p~n", [string:split(Line, ",")]),
+					{momatch, Line}
 			end
 		end,
 		PayloadLines
 	),
 	io:format("~p~n", [Payload]),
 	{ok, Payload}.
+
+-spec parse_nmea(Type :: binary(), Line :: binary()) -> {'ok', map()} | {'error', atom()}.
+parse_nmea(<<"GPLOC">>, Line) ->
+	io:format("GPLOC: ~s~n", [Line]),
+	[_, Remaining] = string:split(Line, <<",">>),
+	ToParse = string:split(Remaining, <<",">>, all),
+	io:format("ToParse: ~p~n", [ToParse]),
+	ToParseTuples = nmea_list_to_tuples(ToParse),
+	io:format("ToParseTuples: ~p~n", [ToParseTuples]),
+	% lists:map(
+	% 	fun (ToParse) ->
+	% 		case
+	% )
+	{ok, Line}.
+
+-spec nmea_list_to_tuples(Type :: list()) -> {list()}.
+nmea_list_to_tuples(List) ->
+	WithoutLast = lists:droplast(List),
+	[_ | WithoutFirst] = List,
+	lists:zip(WithoutLast, WithoutFirst).
