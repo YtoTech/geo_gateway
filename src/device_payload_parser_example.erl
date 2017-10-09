@@ -101,8 +101,29 @@ parse_nmea(<<"GPRMC">>, Line) ->
 		time => array:get(1, Elements),
 		status => array:get(2, Elements),
 		% TODO Get normalized lat and long.
-		latitude => erlang:iolist_to_binary([array:get(3, Elements), <<",">>, array:get(4, Elements)]),
+		latitude => sexagesimalTodecimal(array:get(3, Elements), array:get(4, Elements)),
 		longitude => erlang:iolist_to_binary([array:get(5, Elements), <<",">>, array:get(6, Elements)]),
 		date => array:get(9, Elements),
 		raw => Line
 	}}.
+
+% TODO Create a library for doing geo conversion in Erlang.
+% https://github.com/manuelbieh/Geolib#geolibsexagesimal2decimalstring-coord
+% TODO Manage error cases.
+-spec sexagesimalTodecimal(Sexagesimal :: binary(), Cardinality :: binary()) -> float().
+sexagesimalTodecimal(Sexagesimal, Cardinality) ->
+	io:format("Sexagesimal: ~p~n", [Sexagesimal]),
+	[Ddmm, Mmmmm] = string:split(Sexagesimal, <<".">>),
+	io:format("Ddmm: ~p~n", [Ddmm]),
+	io:format("Mmmmm: ~p~n", [Mmmmm]),
+	{Degrees, _} = string:to_integer(string:slice(Ddmm, 0, 2)),
+	{Minutes, _} = string:to_integer(string:slice(Ddmm, 2)),
+	{Secondes, _} = string:to_integer(Mmmmm),
+	io:format("Degrees: ~p Minutes: ~p Secondes: ~p~n", [Degrees,Minutes,Secondes]),
+	DecimalNoCardinality = Degrees + Minutes / 60 + Secondes / 3600,
+	case Cardinality of
+		<<"S">> -> -DecimalNoCardinality;
+		<<"W">> -> -DecimalNoCardinality;
+		<<"N">> -> DecimalNoCardinality;
+		<<"E">> -> DecimalNoCardinality
+	end.
