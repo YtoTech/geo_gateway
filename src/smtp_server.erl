@@ -107,16 +107,13 @@ handle_MAIL(From, State) ->
 
 %% @doc Handle an extension to the MAIL verb. Return either `{ok, State}' or `error' to reject
 %% the option.
--spec handle_MAIL_extension(Extension :: binary(), State :: #state{}) -> {'ok', #state{}} | 'error'.
 handle_MAIL_extension(Extension, _State) ->
 	io:format("Unknown MAIL FROM extension ~s~n", [Extension]),
 	error.
 
--spec handle_RCPT(To :: binary(), State :: #state{}) -> {'ok', #state{}} | {'error', string(), #state{}}.
 handle_RCPT(_To, State) ->
 	{ok, State}.
 
--spec handle_RCPT_extension(Extension :: binary(), State :: #state{}) -> {'ok', #state{}} | 'error'.
 handle_RCPT_extension(Extension, _State) ->
 	io:format("Unknown RCPT TO extension ~s~n", [Extension]),
 	error.
@@ -151,6 +148,7 @@ handle_DATA(From, To, Data, State) ->
 			% Now parse the actual sensor payload.
 			% TODO Make this customizable.
 			case device_payload_parser_example:parse(
+				Reference,
 				Body,
 				User,
 				proplists:get_value(devices, State#state.options, #{})
@@ -162,6 +160,7 @@ handle_DATA(From, To, Data, State) ->
 					% transmission.
 					% TODO Make this customizable.
 					ok = forwarder_example:forward(
+						Reference,
 						Payload,
 						User,
 						Device,
@@ -183,7 +182,8 @@ handle_DATA(From, To, Data, State) ->
 		false ->
 			ok;
 		true ->
-			DumpToFile("dump/", Reference)
+			% TODO Allows configuration.
+			DumpToFile("dumps/", Reference)
 	end,
 	% At this point, if we return ok, we've accepted responsibility for the email
 	{ok, Reference, State}.
@@ -193,7 +193,6 @@ handle_RSET(State) ->
 	% reset any relevant internal state
 	State.
 
--spec handle_VRFY(Address :: binary(), State :: #state{}) -> {'ok', string(), #state{}} | {'error', string(), #state{}}.
 handle_VRFY(_Address, State) ->
 	{error, "252 VRFY disabled by policy, just send some mail", State}.
 
@@ -228,10 +227,6 @@ handle_AUTH_user(Type, Password, _UserPassword, _State) ->
 	io:format("handle_AUTH error ~w ~w ~n", [Type, Password]),
 	error.
 
--spec handle_info(Info :: term(), State :: term()) ->
-    {noreply, NewState :: term()} |
-    {noreply, NewState :: term(), timeout() | hibernate} |
-    {stop, Reason :: term(), NewState :: term()}.
 handle_info(_Info, State) ->
 	{noreply, State}.
 
