@@ -125,7 +125,9 @@ start(_StartType, _StartArgs) ->
 			[{callbackoptions,
 				[
 					{auth, true},
+					% TODO Allows to configure dump directory.
 					{dump, true},
+					{dump_directory, "dumps/"},
 					{users, Users},
 					{devices, Devices},
 					{forwarders, Forwarders}

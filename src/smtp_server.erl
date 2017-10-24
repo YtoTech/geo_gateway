@@ -182,8 +182,7 @@ handle_DATA(From, To, Data, State) ->
 		false ->
 			ok;
 		true ->
-			% TODO Allows configuration.
-			DumpToFile("dumps/", Reference)
+			DumpToFile(proplists:get_value(dump_directory, State#state.options, "dumps/"), Reference)
 	end,
 	% At this point, if we return ok, we've accepted responsibility for the email
 	{ok, Reference, State}.
