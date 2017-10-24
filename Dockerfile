@@ -28,7 +28,6 @@ RUN make release
 COPY configuration.json /home/geo-sensors-gateway/_build/prod/rel/GeoSensorsGateway/
 
 # Expose relevant ports.
-# Switch to 25
 EXPOSE 25
 
 CMD ["make", "start"]

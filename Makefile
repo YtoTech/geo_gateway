@@ -24,7 +24,7 @@ docker-build:
 	docker build -t geo-sensors-gateway .
 
 docker-start:
-	docker run -d -p 2525:2525 --name geo-sensors-gateway geo-sensors-gateway
+	docker run -d -p 2525:25 --name geo-sensors-gateway geo-sensors-gateway
 
 docker-stop:
 	docker stop geo-sensors-gateway
