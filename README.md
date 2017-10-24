@@ -33,6 +33,7 @@ An OTP application
 
     $ make test
 
+Only compatible with Erlang OTP 20+.
 
 TODO Rename project on GitHub to Erlang non-quoted atom `geo_sensors_gateway`.
 
