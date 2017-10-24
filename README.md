@@ -57,3 +57,7 @@ TODO Forwarder examples:
 * to a Google Sheet;
 * to https://www.mapbox.com/api-documentation/#datasets
 * POST to custom API endpoint
+* Maybe think of another way to archive systematically any file.
+	* ---> To AWS s3?
+	* Create sample forwarders for that.
+	* So we can recover any data when we need.

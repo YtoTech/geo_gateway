@@ -1,3 +1,6 @@
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+current_dir := $(patsubst %/,%,$(dir $(mkfile_path)))
+
 # Development.
 compile:
 	rebar3 compile
@@ -23,12 +26,8 @@ start:
 docker-build:
 	docker build -t geo-sensors-gateway .
 
-# TODO Add file system link between container dumps and host.
-# TODO Maybe think of another way to archive systematically any file.
-# ---> To AWS s3?
-# So we can recover any data when we need.
 docker-start:
-	docker run -d -p 2525:25 --name geo-sensors-gateway geo-sensors-gateway
+	docker run -d -p 2525:25 -v $(current_dir)/dumps:/home/geo-sensors-gateway/dumps/ --name geo-sensors-gateway geo-sensors-gateway
 
 docker-stop:
 	docker stop geo-sensors-gateway
