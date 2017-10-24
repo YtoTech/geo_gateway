@@ -127,17 +127,6 @@ handle_DATA(From, To, Data, State) ->
 	% We do not relay emails but process them.
 	io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
 	% We always try to parse emails.
-	% Function to dump messages somewhere for analysis.
-	DumpToFile = fun(Path, Name) ->
-		 File = Path++Name++".eml",
-		 io:format("Dump incoming message to ~s~n", [File]),
-		case filelib:ensure_dir(File) of
-			ok ->
-				file:write_file(File, Data);
-			_ ->
-				ok
-		end
-	end,
 	DumpsRawMessage = try mimemail:decode(Data) of
 		{_Type, _SubType, Headers, _Properties, Body} ->
 			io:format("From: ~s~nTo: ~s~n", [From, To]),
@@ -172,17 +161,29 @@ handle_DATA(From, To, Data, State) ->
 			end,
 			% If dumping is enabled on the user, dump all messages, whatever the outcome.
 			% ---> Will be usefull for debugging. (And make the server iso with the Python one)
-			maps:get(dumps_raw, User, false)
+			io:format("dumps_incoming: ~p~n", [User]),
+			maps:get(dumps_incoming, User, false)
 	catch
 		What:Why ->
 			io:format("Message decode FAILED with ~p:~p~n", [What, Why]),
-			proplists:get_value(dump, State#state.options, false)
+			proplists:get_value(dumps_incoming, State#state.options, false)
 	end,
-	case DumpsRawMessage  of
+	% Function to dump messages somewhere for analysis.
+	DumpToFile = fun(Path, Name) ->
+		File = erlang:iolist_to_binary([Path, Name, <<".eml">>]),
+		io:format("Dump incoming message to ~s~n", [File]),
+		case filelib:ensure_dir(File) of
+			ok ->
+				file:write_file(File, Data);
+			_ ->
+				ok
+		end
+	end,
+	case DumpsRawMessage of
 		false ->
 			ok;
 		true ->
-			DumpToFile(proplists:get_value(dump_directory, State#state.options, "dumps/"), Reference)
+			DumpToFile(proplists:get_value(dumps_directory, State#state.options, "dumps/"), Reference)
 	end,
 	% At this point, if we return ok, we've accepted responsibility for the email
 	{ok, Reference, State}.

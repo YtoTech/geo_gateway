@@ -4,7 +4,7 @@
 			"email": "test@ytotech.com",
 			"password": "coincoin",
 			"device": "ercogener_genloc_341e",
-			"dumps_raw": true,
+			"dumps_incoming": true,
 			"forwarders": [
 				"file_dump",
 				"mail"
@@ -48,5 +48,9 @@
 				"sheetname": "example"
 			}
 		}
+	},
+	"smtp_gateway": {
+		"dumps_incoming": true,
+		"dumps_directory": "dumps/"
 	}
 }

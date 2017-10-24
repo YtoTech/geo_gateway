@@ -72,7 +72,7 @@ start(_StartType, _StartArgs) ->
 				email => maps:get(<<"email">>, User),
 				device => maps:get(<<"device">>, User),
 				forwarders => maps:get(<<"forwarders">>, User, []),
-				dumps_raw => maps:get(<<"dumps_raw">>, User, false)
+				dumps_incoming => maps:get(<<"dumps_incoming">>, User, false)
 			}
 		end,
 		maps:get(<<"users">>, ConfigurationAsJson)
@@ -90,7 +90,7 @@ start(_StartType, _StartArgs) ->
 				email => maps:get(<<"email">>, User),
 				device => maps:get(<<"device">>, User),
 				forwarders => maps:get(<<"forwarders">>, User, []),
-				dumps_raw => maps:get(<<"dumps_raw">>, User, false)
+				dumps_incoming => maps:get(<<"dumps_incoming">>, User, false)
 			}
 		end,
 		maps:get(<<"users">>, ConfigurationAsJson, {})
@@ -118,6 +118,8 @@ start(_StartType, _StartArgs) ->
 		maps:get(<<"forwarders">>, ConfigurationAsJson, {})
 	),
 	io:format("Forwarders ~p ~n", [Forwarders]),
+	SmtpGateway = maps:fold(MapKeyToAtom, #{}, maps:get(<<"smtp_gateway">>, ConfigurationAsJson, #{})),
+	io:format("SmtpGateway ~p ~n", [SmtpGateway]),
 	{ok,_} = gen_smtp_server:start(smtp_server, [[
 		% TODO Allows configuration of port. Default to 2525.
 		{port, 2525},
@@ -125,9 +127,8 @@ start(_StartType, _StartArgs) ->
 			[{callbackoptions,
 				[
 					{auth, true},
-					% TODO Allows to configure dump directory.
-					{dump, true},
-					{dump_directory, "dumps/"},
+					{dumps_incoming, maps:get(dumps_incoming, SmtpGateway, false)},
+					{dumps_directory, maps:get(dumps_directory, SmtpGateway, "dumps/")},
 					{users, Users},
 					{devices, Devices},
 					{forwarders, Forwarders}
