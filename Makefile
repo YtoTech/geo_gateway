@@ -23,6 +23,10 @@ start:
 docker-build:
 	docker build -t geo-sensors-gateway .
 
+# TODO Add file system link between container dumps and host.
+# TODO Maybe think of another way to archive systematically any file.
+# ---> To AWS s3?
+# So we can recover any data when we need.
 docker-start:
 	docker run -d -p 2525:25 --name geo-sensors-gateway geo-sensors-gateway
 
