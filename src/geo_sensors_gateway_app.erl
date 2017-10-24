@@ -121,8 +121,7 @@ start(_StartType, _StartArgs) ->
 	SmtpGateway = maps:fold(MapKeyToAtom, #{}, maps:get(<<"smtp_gateway">>, ConfigurationAsJson, #{})),
 	io:format("SmtpGateway ~p ~n", [SmtpGateway]),
 	{ok,_} = gen_smtp_server:start(smtp_server, [[
-		% TODO Allows configuration of port. Default to 2525.
-		{port, 2525},
+		{port, maps:get(port, SmtpGateway, 25)},
 		{sessionoptions,
 			[{callbackoptions,
 				[
