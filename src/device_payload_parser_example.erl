@@ -12,7 +12,7 @@
 %% API
 -export([parse/4]).
 
--spec parse(Reference :: binary(), Body :: binary(), User :: map(), Devices :: map()) -> {'ok', map(), map()} | {'error', atom()}.
+-spec parse(Reference :: binary(), Body :: binary(), User :: map(), Devices :: map()) -> {'ok', list(), map()} | {'error', atom()}.
 parse(_Reference, Body, User, Devices) ->
 	% Get the sensor type from user config
 	% and transfert to the appropriate parsing module.
@@ -31,8 +31,8 @@ parse(_Reference, Body, User, Devices) ->
 			{error, no_device}
 	end.
 
--spec parse_genloc(Body :: binary(), User :: map(), Device :: map()) -> {'ok', map()} | {'error', atom()}.
-parse_genloc(Body, User, Device) ->
+-spec parse_genloc(Body :: binary(), User :: map(), Device :: map()) -> {'ok', list()}.
+parse_genloc(Body, _User, _Device) ->
 	io:format("~p~n", [Body]),
 	% Prepare input: split by lines and trim them.
 	Lines = string:split(Body, <<"\n">>, all),
@@ -75,7 +75,7 @@ parse_genloc(Body, User, Device) ->
 	io:format("~p~n", [Payload]),
 	{ok, Payload}.
 
--spec parse_nmea(Type :: binary(), Line :: binary()) -> {'ok', map()} | {'error', atom()}.
+-spec parse_nmea(Type :: binary(), Line :: binary()) -> {'ok', map()}.
 parse_nmea(<<"GPLOC">>, Line) ->
 	io:format("GPLOC: ~s~n", [Line]),
 	Splitted = string:split(Line, <<",">>, all),
@@ -133,7 +133,7 @@ parse_time_hhmmssmm(Time) ->
 % TODO Create a library for doing geo conversion in Erlang.
 % https://github.com/manuelbieh/Geolib#geolibsexagesimal2decimalstring-coord
 % TODO Manage error cases.
--spec sexagesimal_to_decimal(Sexagesimal :: binary(), Cardinality :: binary()) -> float() | nil().
+-spec sexagesimal_to_decimal(Sexagesimal :: binary(), Cardinality :: binary()) -> float() | nil.
 sexagesimal_to_decimal(<<"">>, <<"">>) ->
 	nil;
 sexagesimal_to_decimal(Sexagesimal, Cardinality) ->

@@ -11,7 +11,7 @@
 %% API
 -export([forward/5]).
 
--spec forward(Reference :: binary(), Payload :: map(), User :: map(), Device :: map(), Forwarders :: list()) -> 'ok'.
+-spec forward(Reference :: binary(), Payload :: list(), User :: map(), Device :: map(), Forwarders :: list()) -> 'ok'.
 forward(Reference, Payload, User, Device, Forwarders) ->
 	% Get the forwarders from user config and transfer the payload to each of
 	% them.
