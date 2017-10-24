@@ -22,7 +22,7 @@ forward(Reference, Payload, _User, _Device, Forwarder) ->
 	Formatted = io_lib:format(
 		"~p\n", [Payload]
 	),
-	io:format("Write to: ~s~n", [FilePath]),
+	io:format("Write payload dump to: ~s~n", [FilePath]),
 	ok = file:write_file(
 		FilePath, Formatted
 	),

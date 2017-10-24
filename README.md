@@ -36,6 +36,10 @@ An OTP application
 
 TODO Rename project on GitHub to Erlang non-quoted atom `geo_sensors_gateway`.
 
+TODO Installation instructions for Erlang
+* Where to get Erlang distribution
+* `apt install inotify-tools` (for dev)
+
 % TODO Use error_logger:info_msg("") for logging
 
 TODO Put examples in /doc/examples cf http://erlang.org/doc/design_principles/applications.html
