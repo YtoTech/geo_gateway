@@ -11,7 +11,9 @@
         gen_smtp,
         nested
     ]},
-    {env,[]},
+    {env,[
+        {json_configuration_file, "priv/conf/configuration.json"}
+    ]},
     {modules, [
         device_payload_parser_example,
         example_forwarder_file_dump,

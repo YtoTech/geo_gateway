@@ -39,12 +39,14 @@ start(_StartType, _StartArgs) ->
 	% TODO Allows to override configuration file path.
 	% The users are indexed by username, because we encounter
 	% first the AUTH in the process of receiving a mail.
-	ConfigurationFileContent = case file:read_file('configuration.json') of
+	{ok, ConfigFilePath} = application:get_env(geo_sensors_gateway, json_configuration_file),
+	io:format("Using configuration file ~s~n", [ConfigFilePath]),
+	ConfigurationFileContent = case file:read_file(ConfigFilePath) of
 		{ok, CFC} ->
 			CFC;
 		_ ->
-			io:format("Failed to open configuration.json.~nYou can create a
-			configuration using example configuration.json.sample.~n"),
+			io:format("Failed to open ~s.~nYou can create a
+			configuration using example configuration.json.sample.~n", [ConfigFilePath]),
 			erlang:error(no_configuration)
 	end,
 	ConfigurationAsJson = jiffy:decode(
