@@ -129,6 +129,8 @@ handle_DATA(From, To, Data, State) ->
 	% We do not relay emails but process them.
 	io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
 	% We always try to parse emails.
+	% TODO Refactorize and simplify: this is messy and we get lost here.
+	% --> Create functions for decoding, parsing and/or forwarding?
 	DumpsRawMessage = try mimemail:decode(Data) of
 		{_Type, _SubType, Headers, _Properties, Body} ->
 			io:format("From: ~s~nTo: ~s~n", [From, To]),
@@ -150,6 +152,7 @@ handle_DATA(From, To, Data, State) ->
 					% give it to the forwarder module that will handle its
 					% transmission.
 					% TODO Make this customizable.
+					% TODO Try catch forwarding so we can always dump incoming file!
 					ok = forwarder_example:forward(
 						Reference,
 						Payload,
