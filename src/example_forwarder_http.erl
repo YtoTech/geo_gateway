@@ -21,55 +21,50 @@ forward(_Reference, Payloads, User, Device, Forwarder) ->
 	% file so we can really meta-program.
 	Method = nested:get([parameters, method], Forwarder),
 	Url = nested:get([parameters, url], Forwarder),
-	lists:foreach(
-		fun (Payload) ->
-			% TODO Pass direclty an Erlang function to format URL and/or payload.
-			{_, PayloadData} = Payload,
-			PayloadDataJson = #{
-				% <<"device">> => ApiDevice,
-				<<"timestamp">> => case maps:get(timestamp, PayloadData) of
-					nil -> <<"nil">>;
-					Timestamp -> iso8601:format(Timestamp)
-				end,
-				<<"latitude">> => maps:get(latitude, PayloadData),
-				<<"longitude">> => maps:get(longitude, PayloadData)
-			},
-			% Json = #{
-			% 	<<"text">> => io_lib:format(
-			% 		<<"">>,
-			% 		[]
-			% 	),
-			%
-			% 	"{ \"text\": \"New sensor message\nUser: ~s\nDevice: ~s\n\n~s\" }"
-			% },
-			% io:format("Json: ~p~n", [Json]),
-			% PayloadHttp = jiffy:encode(Json),
-			PayloadHttp = io_lib:format(
-				nested:get([parameters, template], Forwarder),
-				[erlang_to_json_string(User), erlang_to_json_string(Device), erlang_to_json_string(PayloadDataJson)]
-			),
-			io:format("HTTP payload to send (~s:~s) trough Hackney: ~s~n", [Method, Url, PayloadHttp]),
-			{ok, StatusCode, _, Client} = hackney:request(
-			binary_to_atom(Method, utf8),
-			Url,
-			% TODO Allows to configure.
-			[{<<"Content-Type">>, <<"application/json">>}],
-			PayloadHttp
-			),
-			case StatusCode of
-				201 ->
-					io:format("Sent!~n"),
-					ok;
-				_ ->
-					{ok, Body} = hackney:body(Client),
-					io:format("Body: ~p~n", [Body]),
-					io:format("StatusCode: ~p~n", [StatusCode]),
-					error
-			end
-		end,
-		Payloads
+	% % TODO Pass direclty an Erlang function to format URL and/or payload.
+	% {_, PayloadData} = Payload,
+	% PayloadDataJson = #{
+	% 	% <<"device">> => ApiDevice,
+	% 	<<"timestamp">> => case maps:get(timestamp, PayloadData) of
+	% 		nil -> <<"nil">>;
+	% 		Timestamp -> iso8601:format(Timestamp)
+	% 	end,
+	% 	<<"latitude">> => maps:get(latitude, PayloadData),
+	% 	<<"longitude">> => maps:get(longitude, PayloadData)
+	% },
+	% Json = #{
+	% 	<<"text">> => io_lib:format(
+	% 		<<"">>,
+	% 		[]
+	% 	),
+	%
+	% 	"{ \"text\": \"New sensor message\nUser: ~s\nDevice: ~s\n\n~s\" }"
+	% },
+	% io:format("Json: ~p~n", [Json]),
+	% PayloadHttp = jiffy:encode(Json),
+	PayloadHttp = io_lib:format(
+		nested:get([parameters, template], Forwarder),
+		[erlang_to_json_string(User), erlang_to_json_string(Device), erlang_to_json_string(Payloads)]
 	),
-	ok.
+	io:format("HTTP payload to send (~s:~s) trough Hackney: ~s~n", [Method, Url, PayloadHttp]),
+	{ok, StatusCode, _, Client} = hackney:request(
+	binary_to_atom(Method, utf8),
+	Url,
+	% TODO Allows to configure.
+	[{<<"Content-Type">>, <<"application/json">>}],
+	PayloadHttp
+	),
+	case StatusCode of
+		% TODO 20X
+		200 ->
+			io:format("Sent!~n"),
+			ok;
+		_ ->
+			{ok, Body} = hackney:body(Client),
+			io:format("Body: ~p~n", [Body]),
+			io:format("StatusCode: ~p~n", [StatusCode]),
+			error
+	end.
 
 erlang_to_json_string(Erlang) ->
 	string:replace(io_lib:format("~p", [Erlang]), "\"", "\\\"", all).
