@@ -16,7 +16,6 @@ forward(_Reference, Payload, _User, _Device, Forwarder) ->
 	% TODO Do forward in another process.
 	% Basically add to a queue using Erlang messages.
 	% Create one new process per forwarding?
-	% TODO Get SMTP params from forwarder parameters.
 	SmtpConfiguration = nested:get([parameters, smtp], Forwarder),
 	From = nested:get([parameters, from], Forwarder, "geo-sensors-gateway@ytotech.com"),
 	lists:foreach(

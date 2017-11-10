@@ -9,7 +9,8 @@
         eiconv,
         jiffy,
         gen_smtp,
-        nested
+        nested,
+        hackney
     ]},
     {env,[
         {json_configuration_file, "priv/conf/configuration.json"}
@@ -18,6 +19,7 @@
         device_payload_parser_example,
         example_forwarder_file_dump,
         example_forwarder_mail,
+        example_forwarder_http,
         forwarder_example,
         geo_sensors_gateway_app,
         geo_sensors_gateway_sup,
