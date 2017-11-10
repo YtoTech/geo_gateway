@@ -45,8 +45,8 @@ forward(_Reference, Payloads, User, Device, Forwarder) ->
 			% io:format("Json: ~p~n", [Json]),
 			% PayloadHttp = jiffy:encode(Json),
 			PayloadHttp = io_lib:format(
-			nested:get([parameters, template], Forwarder),
-				[jiffy:encode(User), jiffy:encode(Device), jiffy:encode(PayloadDataJson)]
+				nested:get([parameters, template], Forwarder),
+				[erlang_to_json_string(User), erlang_to_json_string(Device), erlang_to_json_string(PayloadDataJson)]
 			),
 			io:format("HTTP payload to send (~s:~s) trough Hackney: ~s~n", [Method, Url, PayloadHttp]),
 			{ok, StatusCode, _, Client} = hackney:request(
@@ -70,3 +70,6 @@ forward(_Reference, Payloads, User, Device, Forwarder) ->
 		Payloads
 	),
 	ok.
+
+erlang_to_json_string(Erlang) ->
+	string:replace(io_lib:format("~p", [Erlang]), "\"", "\\\"", all).
