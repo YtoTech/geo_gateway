@@ -6,11 +6,17 @@
 
 -module(device_payload_parser_example).
 -author('yoan@ytotech.com').
+
 % TODO https://stackoverflow.com/questions/32336854/how-to-create-and-use-a-custom-erlang-behavior
 % -behaviour(device_payload_parser).
 
 %% API
 -export([parse/4]).
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+% -export([ddm_to_decimal/2]).
+-endif.
 
 -spec parse(Reference :: binary(), Body :: binary(), User :: map(), Devices :: map()) -> {'ok', list(), map()} | {'error', atom()}.
 parse(_Reference, Body, User, Devices) ->
@@ -142,7 +148,14 @@ sexagesimal_to_decimal(Sexagesimal, Cardinality) ->
 
 ddm_to_decimal(Sexagesimal, Cardinality) ->
 	io:format("Sexagesimal: ~p Cardinality: ~p ~n", [Sexagesimal,Cardinality]),
-	{Degrees, _} = string:to_integer(string:slice(Sexagesimal, 0, 2)),
+	% TODO Longitude: 2 digits for degree. Latitude: 3 digits for degree.
+	DegreeNumberDigits = case Cardinality of
+		<<"S">> -> 2;
+		<<"N">> -> 2;
+		<<"W">> -> 2;
+		<<"E">> -> 2
+	end,
+	{Degrees, _} = string:to_integer(string:slice(Sexagesimal, 0, DegreeNumberDigits)),
 	{Minutes, _} = string:to_float(string:slice(Sexagesimal, 2)),
 	io:format("Degrees: ~p Minutes: ~p ~n", [Degrees,Minutes]),
 	DecimalNoCardinality = Degrees + Minutes / 60,
@@ -168,3 +181,19 @@ ddm_to_decimal(Sexagesimal, Cardinality) ->
 % 		<<"N">> -> DecimalNoCardinality;
 % 		<<"E">> -> DecimalNoCardinality
 % 	end.
+
+-ifdef(TEST).
+
+ddm_to_decimal_test_() ->
+	[
+		{"Convert nominal values",
+		fun() ->
+			?assertEqual(44.572409, ddm_to_decimal(<<"4434.34454">>, <<"N">>)),
+			?assertEqual(0.7740036666666666, ddm_to_decimal(<<"00046.44022">>, <<"E">>)),
+			?assertEqual(52.31773616666667, ddm_to_decimal(<<"5219.06417">>, <<"N">>)),
+			?assertEqual(9.799913, ddm_to_decimal(<<"00947.99488">>, <<"E">>))
+		end
+		}
+	].
+
+-endif.

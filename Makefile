@@ -14,6 +14,9 @@ lint:
 test:
 	rebar3 eunit
 
+test-cover:
+	rebar3 eunit --cover
+
 # Releasing and running in production.
 release:
 	rebar3 as prod release

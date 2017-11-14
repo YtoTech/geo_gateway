@@ -1,14 +1,30 @@
 {"1.1.0",
-[{<<"eiconv">>,{pkg,<<"eiconv">>,<<"1.0.0-alpha1">>},0},
+[{<<"certifi">>,{pkg,<<"certifi">>,<<"2.0.0">>},1},
+ {<<"eiconv">>,{pkg,<<"eiconv">>,<<"1.0.0-alpha1">>},0},
  {<<"gen_smtp">>,
   {git,"git://github.com/YtoTech/gen_smtp.git",
        {ref,"a0df320c05a34a8396198f2f9847e191c0b8ef7a"}},
   0},
+ {<<"hackney">>,{pkg,<<"hackney">>,<<"1.10.1">>},0},
+ {<<"idna">>,{pkg,<<"idna">>,<<"5.1.0">>},1},
+ {<<"iso8601">>,{pkg,<<"iso8601">>,<<"1.2.3">>},0},
  {<<"jiffy">>,{pkg,<<"jiffy">>,<<"0.14.11">>},0},
- {<<"nested">>,{pkg,<<"nested">>,<<"0.1.2">>},0}]}.
+ {<<"metrics">>,{pkg,<<"metrics">>,<<"1.0.1">>},1},
+ {<<"mimerl">>,{pkg,<<"mimerl">>,<<"1.0.2">>},1},
+ {<<"nested">>,{pkg,<<"nested">>,<<"0.1.2">>},0},
+ {<<"ssl_verify_fun">>,{pkg,<<"ssl_verify_fun">>,<<"1.1.1">>},1},
+ {<<"unicode_util_compat">>,{pkg,<<"unicode_util_compat">>,<<"0.3.1">>},2}]}.
 [
 {pkg_hash,[
+ {<<"certifi">>, <<"A0C0E475107135F76B8C1D5BC7EFB33CD3815CB3CF3DEA7AEFDD174DABEAD064">>},
  {<<"eiconv">>, <<"547DA4B8ABB5C85EE8E47D7B9EBFCA77016B03F2869DEDC91A0F0177AB67EBC4">>},
+ {<<"hackney">>, <<"C38D0CA52EA80254936A32C45BB7EB414E7A96A521B4CE76D00A69753B157F21">>},
+ {<<"idna">>, <<"D72B4EFFEB324AD5DA3CAB1767CB16B17939004E789D8C0AD5B70F3CEA20C89A">>},
+ {<<"iso8601">>, <<"56D173EC568D42E95908797A9B7D27BCF0B377443277416733EB1A544A4A47C2">>},
  {<<"jiffy">>, <<"919A87D491C5A6B5E3BBC27FAFEDC3A0761CA0B4C405394F121F582FD4E3F0E5">>},
- {<<"nested">>, <<"D411ABF7FDB6D6BCAC4A0E0769705649870E1046A98899001C282351E57C038D">>}]}
+ {<<"metrics">>, <<"25F094DEA2CDA98213CECC3AEFF09E940299D950904393B2A29D191C346A8486">>},
+ {<<"mimerl">>, <<"993F9B0E084083405ED8252B99460C4F0563E41729AB42D9074FD5E52439BE88">>},
+ {<<"nested">>, <<"D411ABF7FDB6D6BCAC4A0E0769705649870E1046A98899001C282351E57C038D">>},
+ {<<"ssl_verify_fun">>, <<"28A4D65B7F59893BC2C7DE786DEC1E1555BD742D336043FE644AE956C3497FBE">>},
+ {<<"unicode_util_compat">>, <<"A1F612A7B512638634A603C8F401892AFBF99B8CE93A45041F8AACA99CADB85E">>}]}
 ].
