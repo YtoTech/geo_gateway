@@ -13,11 +13,6 @@
 %% API
 -export([parse/4]).
 
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
-% -export([ddm_to_decimal/2]).
--endif.
-
 -spec parse(Reference :: binary(), Body :: binary(), User :: map(), Devices :: map()) -> {'ok', list(), map()} | {'error', atom()}.
 parse(_Reference, Body, User, Devices) ->
 	% Get the sensor type from user config
@@ -96,8 +91,8 @@ parse_nmea(<<"GPLOC">>, Line) ->
 		% How to determine timestamp? We can not be sure the trame is
 		% from today.
 		timestamp => nil,
-		latitude => sexagesimal_to_decimal(array:get(4, Elements), array:get(5, Elements)),
-		longitude => sexagesimal_to_decimal(array:get(6, Elements), array:get(7, Elements)),
+		latitude => geo_conversions:sexagesimal_to_decimal(array:get(4, Elements), array:get(5, Elements)),
+		longitude => geo_conversions:sexagesimal_to_decimal(array:get(6, Elements), array:get(7, Elements)),
 		raw => Line
 	}};
 parse_nmea(<<"GPRMC">>, Line) ->
@@ -116,8 +111,8 @@ parse_nmea(<<"GPRMC">>, Line) ->
 			Time
 		},
 		status => array:get(2, Elements),
-		latitude => sexagesimal_to_decimal(array:get(3, Elements), array:get(4, Elements)),
-		longitude => sexagesimal_to_decimal(array:get(5, Elements), array:get(6, Elements)),
+		latitude => geo_conversions:sexagesimal_to_decimal(array:get(3, Elements), array:get(4, Elements)),
+		longitude => geo_conversions:sexagesimal_to_decimal(array:get(5, Elements), array:get(6, Elements)),
 		raw => Line
 	}}.
 
@@ -135,65 +130,3 @@ parse_time_hhmmssmm(Time) ->
 	% Get mm?
 	{Seconds, _} = string:to_float(string:slice(Time, 4)),
 	{Hours, Minutes, Seconds}.
-
-% TODO Create a library for doing geo conversion in Erlang.
-% https://github.com/manuelbieh/Geolib#geolibsexagesimal2decimalstring-coord
-% TODO Manage error cases.
--spec sexagesimal_to_decimal(Sexagesimal :: binary(), Cardinality :: binary()) -> float() | nil.
-sexagesimal_to_decimal(<<"">>, <<"">>) ->
-	nil;
-sexagesimal_to_decimal(Sexagesimal, Cardinality) ->
-	% TODO How to switch between DDM and DMS?
-	ddm_to_decimal(Sexagesimal, Cardinality).
-
-ddm_to_decimal(Sexagesimal, Cardinality) ->
-	io:format("Sexagesimal: ~p Cardinality: ~p ~n", [Sexagesimal,Cardinality]),
-	% Longitude: 2 digits for degree (0 to 89). Latitude: 3 digits for degree (0 to 179).
-	DegreeNumberDigits = case Cardinality of
-		<<"S">> -> 2;
-		<<"N">> -> 2;
-		<<"W">> -> 3;
-		<<"E">> -> 3
-	end,
-	{Degrees, _} = string:to_integer(string:slice(Sexagesimal, 0, DegreeNumberDigits)),
-	{Minutes, _} = string:to_float(string:slice(Sexagesimal, DegreeNumberDigits)),
-	io:format("Degrees: ~p Minutes: ~p ~n", [Degrees,Minutes]),
-	DecimalNoCardinality = Degrees + Minutes / 60,
-	case Cardinality of
-		<<"S">> -> -DecimalNoCardinality;
-		<<"W">> -> -DecimalNoCardinality;
-		<<"N">> -> DecimalNoCardinality;
-		<<"E">> -> DecimalNoCardinality
-	end.
-
-% dms_to_decimal(Sexagesimal, Cardinality) ->
-% 	% TODO Broken. Should parse 44°34'20.7"N 0°46'26.4"E
-% 	io:format("Sexagesimal: ~p Cardinality: ~p ~n", [Sexagesimal,Cardinality]),
-% 	[Ddmm, Mmmmm] = string:split(Sexagesimal, <<".">>),
-% 	{Degrees, _} = string:to_integer(string:slice(Ddmm, 0, 2)),
-% 	{Minutes, _} = string:to_integer(string:slice(Ddmm, 2)),
-% 	{Secondes, _} = string:to_float(string:slice(Mmmmm, 0, 2)),
-% 	io:format("Degrees: ~p Minutes: ~p Secondes: ~p~n", [Degrees,Minutes,Secondes]),
-% 	DecimalNoCardinality = Degrees + Minutes / 60 + Secondes / 3600,
-% 	case Cardinality of
-% 		<<"S">> -> -DecimalNoCardinality;
-% 		<<"W">> -> -DecimalNoCardinality;
-% 		<<"N">> -> DecimalNoCardinality;
-% 		<<"E">> -> DecimalNoCardinality
-% 	end.
-
--ifdef(TEST).
-
-ddm_to_decimal_test_() ->
-	[
-		{"Convert nominal values",
-		fun() ->
-			?assertEqual(44.572409, ddm_to_decimal(<<"4434.34454">>, <<"N">>)),
-			?assertEqual(0.7740036666666666, ddm_to_decimal(<<"00046.44022">>, <<"E">>)),
-			?assertEqual(52.31773616666667, ddm_to_decimal(<<"5219.06417">>, <<"N">>)),
-			?assertEqual(9.799914666666666, ddm_to_decimal(<<"00947.99488">>, <<"E">>))
-		end
-		}
-	].
-
--endif.
