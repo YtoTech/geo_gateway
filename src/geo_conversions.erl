@@ -4,9 +4,7 @@
 -module(geo_conversions).
 -author('yoan@ytotech.com').
 
--ifdef(TEST).
--export([ddm_to_decimal/2]).
--endif.
+-export([sexagesimal_to_decimal/2, ddm_to_decimal/2]).
 
 % TODO Create a library for doing geo conversion in Erlang.
 % https://github.com/manuelbieh/Geolib#geolibsexagesimal2decimalstring-coord
