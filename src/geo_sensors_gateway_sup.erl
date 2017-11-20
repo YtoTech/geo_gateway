@@ -28,7 +28,53 @@ start_link() ->
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-	{ok, { {one_for_all, 0, 1}, []} }.
+	#{
+		smtp_gateway := SmtpGateway,
+		users := Users,
+		devices := Devices,
+		forwarders := Forwarders
+	} = geo_sensors_gateway:load_config(),
+	% io:format("Config ~p ~p ~p ~p ~n", [SmtpGateway,Users,Devices,Forwarders]),
+	% {ok,_} = gen_smtp_server:start_link(smtp_server, [[
+	% 	{port, maps:get(port, SmtpGateway, 25)},
+	% 	{sessionoptions,
+	% 		[{callbackoptions,
+	% 			[
+	% 				{auth, true},
+	% 				{dumps_incoming, maps:get(dumps_incoming, SmtpGateway, false)},
+	% 				{dumps_directory, maps:get(dumps_directory, SmtpGateway, "dumps/")},
+	% 				{users, Users},
+	% 				{devices, Devices},
+	% 				{forwarders, Forwarders}
+	% 			]
+	% 		}]
+	% 	}
+	% ]]),
+	SmtpServer = {
+		gen_sensors_gateway,
+		{gen_smtp_server, start_link, [smtp_server, [[
+			{port, maps:get(port, SmtpGateway, 25)},
+			{sessionoptions,
+				[{callbackoptions,
+					[
+						{auth, true},
+						{dumps_incoming, maps:get(dumps_incoming, SmtpGateway, false)},
+						{dumps_directory, maps:get(dumps_directory, SmtpGateway, "dumps/")},
+						{users, Users},
+						{devices, Devices},
+						{forwarders, Forwarders}
+					]
+				}]
+			}
+		]]]},
+		permanent,
+		2000,
+		worker,
+		[gen_smtp_server]
+	},
+	Children = [SmtpServer],
+	RestartStrategy = {one_for_one, 0, 1},
+	{ok, { RestartStrategy, Children} }.
 
 %%====================================================================
 %% Internal functions

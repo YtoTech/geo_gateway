@@ -23,7 +23,8 @@
         forwarder_example,
         geo_sensors_gateway_app,
         geo_sensors_gateway_sup,
-        smtp_server
+        smtp_server,
+        geo_sensors_gateway
     ]},
 
     {maintainers, ["Yoan Tournade"]},

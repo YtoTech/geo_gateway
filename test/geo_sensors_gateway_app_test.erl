@@ -10,9 +10,8 @@ load_configuration_test_() ->
 		{"Loads configuration from configuration.json file by default",
 		fun() ->
 			% TODO How to start it using geo_sensors_gateway:start()?
-			StartLink = geo_sensors_gateway_sup:start_link(),
+			StartApp = application:start(geo_sensors_gateway),
 			% TODO Get internal state.
-			{StartLinkStatus, _} = StartLink,
-			?assertEqual(ok, StartLinkStatus)
+			?assertEqual(ok, StartApp)
 		end}
 	].
