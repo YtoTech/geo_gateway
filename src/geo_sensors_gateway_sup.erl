@@ -33,7 +33,7 @@ init([]) ->
 		users := Users,
 		devices := Devices,
 		forwarders := Forwarders
-	} = geo_sensors_gateway:load_config(),
+	} = geo_sensors_gateway_config:load_config(),
 	% io:format("Config ~p ~p ~p ~p ~n", [SmtpGateway,Users,Devices,Forwarders]),
 	% {ok,_} = gen_smtp_server:start_link(smtp_server, [[
 	% 	{port, maps:get(port, SmtpGateway, 25)},

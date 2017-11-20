@@ -3,7 +3,7 @@
 %% @end
 %%%-------------------------------------------------------------------
 
--module(geo_sensors_gateway).
+-module(geo_sensors_gateway_config).
 
 % TODO gen_server? Other?
 % -behaviour(application).

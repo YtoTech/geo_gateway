@@ -24,7 +24,7 @@
         geo_sensors_gateway_app,
         geo_sensors_gateway_sup,
         smtp_server,
-        geo_sensors_gateway
+        geo_sensors_gateway_config
     ]},
 
     {maintainers, ["Yoan Tournade"]},
