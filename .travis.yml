@@ -1,23 +1,26 @@
 language: erlang
 sudo: false
 install:
-  - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
+- wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
 script:
-  - "make lint"
-  - "make test"
+- make lint
+- make test
 otp_release:
-  - 20.1
-  - 20.0
-
+- 20.1
+- 20.0
 jobs:
   include:
-    - stage: deploy
-      otp_release: 20.0
-      script: skip
-      deploy:
-        provider: script
-        script: "bash -c 'source <(curl -s https://raw.githubusercontent.com/zotonic/hexpub/master/hexpub.sh)'"
-        skip_cleanup: true
-        on:
-          tags: true
-          all_branches: true
+  - stage: deploy
+    otp_release: 20.0
+    script: skip
+    deploy:
+      provider: script
+      script: bash -c 'source <(curl -s https://raw.githubusercontent.com/zotonic/hexpub/master/hexpub.sh)'
+      skip_cleanup: true
+      on:
+        tags: true
+        all_branches: true
+notifications:
+  slack:
+    rooms:
+      secure: p0x3F8TYiryAZpMrtLIbb4/aKR4y1nETBSMVgdD8vUIIpHaWAD0lcQhSi0DoyK4xKTKi1P9j3nwJPA6msNI9gRTZzBCquSOBlNUf0R0vRK0cIDyC9xez2fGXcDIorQOr/7yh85EKUWN5gHyeUAYaq4JkHV9ENXoGVWIT76Koz2o/ZD9MjIBqFiV0J2B/nOmoqeGyO/AmDG8oBBFX7YuCKr6+hgf0mfiF7304iQ6yLckitEQT3Ayya7+McTAJAukVm97TfXbnrZyMi+TK57VbT80uab0ZG8LKP/AFz5CmJs+o2ziz41xM1nQwDK7Zo7SIAx3w/QsmT3zJMfxgmeY+j2pl/KcBtK6ztveCPhHpzqa88ozFGtKEuWg2oZQL1pq+eiOrmtY5nVOqkuNV5lm2f4asLs3+GSu3G4/FIFCZzdexHJYUeCOGo6MrMkOtVoN4vpuU27CmBv26kD7KxkVDcxfktNFNJnmb4tUh9rfC5/0KkLBFXWzc/SZfc4Lrg+CfzAklBAEkVX55sqjLh9VILiSEQSSypqLcIjVpqfTztx76/TwXU8MH83/i7/XplqTExnz3skji9E8d3u7GwoZTy/tYytTglK1qNHbTGe5EHDsokY/C1P6r3CvuCpCqNqGnQM2i86wZ1VP7Xm9PgguIpcTO1Y9garGHmjGekaJ8XDQ=
