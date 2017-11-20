@@ -137,8 +137,8 @@ start(_StartType, _StartArgs) ->
 			}]
 		}
 	]]),
-    % TODO Use the supervisor for hot-reloading?
-    geo_sensors_gateway_sup:start_link().
+	% TODO Use the supervisor for hot-reloading?
+	geo_sensors_gateway_sup:start_link().
 
 %%--------------------------------------------------------------------
 stop(_State) ->
