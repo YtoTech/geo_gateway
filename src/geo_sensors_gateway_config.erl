@@ -17,7 +17,7 @@
 %% API
 %%====================================================================
 
--spec load_config() -> {map()} | {error, term()}.
+-spec load_config() -> #{devices => map(), forwarders => map(), smtp_gateway => map(), users => map()}.
 load_config() ->
 	% TODO Use get_env as the first mechanism to pass configuration.
 	% TODO Use http://erlang.org/doc/apps/kernel/application.html#ensure_all_started-1
