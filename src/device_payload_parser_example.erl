@@ -7,8 +7,7 @@
 -module(device_payload_parser_example).
 -author('yoan@ytotech.com').
 
-% TODO https://stackoverflow.com/questions/32336854/how-to-create-and-use-a-custom-erlang-behavior
-% -behaviour(device_payload_parser).
+-behaviour(device_payload_parser).
 
 %% API
 -export([parse/4]).

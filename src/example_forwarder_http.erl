@@ -5,14 +5,12 @@
 
 -module(example_forwarder_http).
 -author('yoan@ytotech.com').
-% TODO https://stackoverflow.com/questions/32336854/how-to-create-and-use-a-custom-erlang-behavior
-% -behaviour(forwarder).
 
 %% API
--export([forward/5]).
+-export([forward_one/5]).
 
--spec forward(Reference :: binary(), Payload :: map(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
-forward(_Reference, Payloads, User, Device, Forwarder) ->
+-spec forward_one(Reference :: binary(), Payload :: map(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
+forward_one(_Reference, Payloads, User, Device, Forwarder) ->
 	% TODO Do forward in another process.
 	% Basically add to a queue using Erlang messages.
 	% Create one new process per forwarding?

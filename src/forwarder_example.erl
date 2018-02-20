@@ -5,8 +5,8 @@
 
 -module(forwarder_example).
 -author('yoan@ytotech.com').
-% TODO https://stackoverflow.com/questions/32336854/how-to-create-and-use-a-custom-erlang-behavior
-% -behaviour(forwarder).
+
+-behaviour(geo_forwarder).
 
 %% API
 -export([forward/5]).
@@ -26,7 +26,7 @@ forward(Reference, Payload, User, Device, Forwarders) ->
 					case code:ensure_loaded(Module) of
 						{module, Module} ->
 							% TODO Handle error?
-							ok = Module:forward(
+							ok = Module:forward_one(
 								Reference, Payload, User, Device, Forwarder
 							);
 						{error, _Reason} ->

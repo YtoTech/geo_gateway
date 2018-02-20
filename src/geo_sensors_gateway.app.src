@@ -16,7 +16,9 @@
         {json_configuration_file, "priv/conf/configuration.json"}
     ]},
     {modules, [
+        device_payload_parser,
         device_payload_parser_example,
+        geo_forwarder,
         example_forwarder_file_dump,
         example_forwarder_mail,
         example_forwarder_http,
