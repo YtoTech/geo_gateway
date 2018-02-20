@@ -4,6 +4,7 @@ install:
 - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
 script:
 - make lint
+- cp ./priv/configuration.json.sample ./priv/configuration.json
 - make test
 otp_release:
 - 20.1
