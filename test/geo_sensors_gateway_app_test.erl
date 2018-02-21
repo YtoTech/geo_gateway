@@ -14,3 +14,9 @@ load_configuration_test_() ->
 			?assertEqual(ok, StartAppStatus)
 		end}
 	].
+
+% TODO Test for forwarding fault-tolerance:
+% * launch a geo_sensors_gateway application, with one forwarder ;
+% * implement this forwarder as to fail to forward randomly half or 25 % of the payloads ;
+% * implement the receiver as a simple process getting the messages;
+% * all messages must have been correctly forwarder to the receiver at the end of the test.
