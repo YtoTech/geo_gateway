@@ -13,6 +13,13 @@ load_configuration_test_() ->
 		{"Loads configuration from configuration.json file by default",
 		fun() ->
 			{StartAppStatus, _} = application:ensure_all_started(geo_sensors_gateway),
+			?assertEqual(ok, StartAppStatus),
+			ok = application:stop(geo_sensors_gateway)
+		end},
+		{"Loads test configuration",
+		fun() ->
+			ok = application:set_env(geo_sensors_gateway, json_configuration_file, "priv/conf/configuration.json.tests", [{persistent, true}]),
+			{StartAppStatus, _} = application:ensure_all_started(geo_sensors_gateway),
 			% TODO Get internal state.
 			?assertEqual(ok, StartAppStatus),
 			ok = application:stop(geo_sensors_gateway)
