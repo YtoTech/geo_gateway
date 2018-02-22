@@ -4,6 +4,9 @@
 -author('yoan@ytotech.com').
 -include_lib("eunit/include/eunit.hrl").
 
+% TODO Create setup and teardown to start and stop app between tests.
+% Also allows to pass parameters to app before starting it.
+% (Using application:set_env())
 
 load_configuration_test_() ->
 	[
@@ -11,7 +14,16 @@ load_configuration_test_() ->
 		fun() ->
 			{StartAppStatus, _} = application:ensure_all_started(geo_sensors_gateway),
 			% TODO Get internal state.
-			?assertEqual(ok, StartAppStatus)
+			?assertEqual(ok, StartAppStatus),
+			ok = application:stop(geo_sensors_gateway)
+		end},
+		{"Fails if the specified configuration file does not exists",
+		fun() ->
+			ok = application:set_env(geo_sensors_gateway, json_configuration_file, "noexist.conf", [{persistent, true}]),
+			{StartAppStatus, Reason} = application:ensure_all_started(geo_sensors_gateway),
+			?assertEqual(error, StartAppStatus),
+			{geo_sensors_gateway, {{ReasonForApp, _}, _}} = Reason,
+			?assertEqual(no_configuration, ReasonForApp)
 		end}
 	].
 
