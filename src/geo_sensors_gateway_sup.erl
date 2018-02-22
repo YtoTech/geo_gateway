@@ -28,8 +28,12 @@ start_link() ->
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-	io:format("Init with ~p~n", [application:get_all_env()]),
+	io:format("Env is ~p~n", [application:get_all_env()]),
 	% Load application configuration.
+	io:format("Env is ~p~n", [application:get_env(gateway_config_loader)]),
+	{ok, ConfigLoaderName} = application:get_env(gateway_config_loader),
+	ConfigLoader = list_to_atom(ConfigLoaderName),
+	{module, _} = code:ensure_loaded(ConfigLoader),
 	% TODO Access the configuration directly in
 	% the app modules.
 	% Make geo_sensors_gateway_config a gen_server
@@ -41,7 +45,7 @@ init([]) ->
 		users := Users,
 		devices := Devices,
 		forwarders := Forwarders
-	} = gateway_config_loader_json:load_config(),
+	} = ConfigLoader:load_config(),
 	SmtpServer = {
 		gen_sensors_gateway,
 		{gen_smtp_server, start_link, [smtp_server, [[

@@ -13,6 +13,7 @@
         hackney
     ]},
     {env,[
+        {gateway_config_loader, "gateway_config_loader_json"},
         {json_configuration_file, "priv/conf/configuration.json"}
     ]},
     {modules, [
