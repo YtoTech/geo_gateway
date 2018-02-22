@@ -7,7 +7,7 @@ script:
 # TODO Fix path configuration for tests.
 - ls ./
 - ls ./priv
-- cp ./priv/conf/configuration.json.sample ./priv/conf/configuration.json
+- cp ./priv/conf/configuration.json.travis ./priv/conf/configuration.json
 - make test
 otp_release:
 - 20.1

@@ -1,0 +1,57 @@
+{
+	"users": {
+		"annon": {
+			"email": "test@ytotech.com",
+			"password": "coincoin",
+			"device": "ercogener_genloc_341e",
+			"dumps_incoming": true,
+			"forwarders": [
+				"file_dump",
+				"mail"
+			]
+		}
+	},
+	"devices": {
+		"ercogener_genloc_341e": {
+			"manufacturer": "Ercogener",
+			"range": "GenLoc",
+			"model": "451e EaseLoc",
+			"parameters": {
+			}
+		}
+	},
+	"forwarders": {
+		"file_dump": {
+			"module": "example_forwarder_file_dump",
+			"parameters": {
+				"path": "dumps/"
+			}
+		},
+		"mail": {
+			"module": "example_forwarder_mail",
+			"parameters": {
+				"to": [
+					"test@example.com"
+				],
+				"from": "geo-sensors-gateway@ytotech.com",
+				"subject": "GeoSensors event received",
+				"smtp": {
+					"hostname": "smtp.gmail.com",
+					"username": "mymail@gmail.com",
+					"password": "mypassword"
+				}
+			}
+		},
+		"google_sheet": {
+			"module": "example_forwarder_google_sheet",
+			"parameters": {
+				"sheetname": "example"
+			}
+		}
+	},
+	"smtp_gateway": {
+		"dumps_incoming": true,
+		"dumps_directory": "dumps/",
+		"port": 2525
+	}
+}

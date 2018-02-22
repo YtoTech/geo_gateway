@@ -28,6 +28,7 @@ start_link() ->
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
+	io:format("Init with ~p~n", [application:get_all_env()]),
 	% Load application configuration.
 	% TODO Access the configuration directly in
 	% the app modules.
