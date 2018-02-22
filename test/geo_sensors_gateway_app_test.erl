@@ -35,6 +35,15 @@ load_configuration_test_() ->
 			?assertEqual(error, StartAppStatus),
 			{geo_sensors_gateway, {{ReasonForApp, _}, _}} = Reason,
 			?assertEqual(no_configuration, ReasonForApp)
+		end},
+		{"Fails if the config specified is void",
+		fun() ->
+			ok = application:set_env(geo_sensors_gateway, gateway_config_loader, "gateway_config_loader_process_dict", [{persistent, true}]),
+			ok = gateway_config_loader_process_dict:set_config(#{}),
+			{StartAppStatus, Reason} = application:ensure_all_started(geo_sensors_gateway),
+			?assertEqual(error, StartAppStatus),
+			{geo_sensors_gateway, {{ReasonForApp, _}, _}} = Reason,
+			?assertEqual({badmatch,undefined}, ReasonForApp)
 		end}
 	].
 

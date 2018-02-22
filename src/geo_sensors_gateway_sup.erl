@@ -35,11 +35,9 @@ init([]) ->
 	ConfigLoader = list_to_atom(ConfigLoaderName),
 	{module, _} = code:ensure_loaded(ConfigLoader),
 	% TODO Access the configuration directly in
-	% the app modules.
-	% Make geo_sensors_gateway_config a gen_server
-	% to be started here. Then it could loads the configuration
-	% from files, get_env, HTTP or whatever using a dedicated
-	% callback module to be provided.
+	% the app modules to allows hot configuration reloading.
+	% Trigger a first configuration load here to ensure the config loader works.
+	% TODO Return a bad_configuration error in case of bad match, without making the code ugly?
 	#{
 		smtp_gateway := SmtpGateway,
 		users := Users,
