@@ -41,7 +41,7 @@ init([]) ->
 		users := Users,
 		devices := Devices,
 		forwarders := Forwarders
-	} = geo_sensors_gateway_config:load_config(),
+	} = gateway_config_loader_json:load_config(),
 	SmtpServer = {
 		gen_sensors_gateway,
 		{gen_smtp_server, start_link, [smtp_server, [[

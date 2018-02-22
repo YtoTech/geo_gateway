@@ -1,12 +1,11 @@
 %%%-------------------------------------------------------------------
-%% @doc geo_sensors_gateway public API
+%% @doc Load gateway configuration from a json file.
 %% @end
 %%%-------------------------------------------------------------------
 
--module(geo_sensors_gateway_config).
+-module(gateway_config_loader_json).
 
-% TODO gen_server? Other?
-% -behaviour(application).
+-behaviour(gateway_config_loader).
 
 %% API functions.
 -export([

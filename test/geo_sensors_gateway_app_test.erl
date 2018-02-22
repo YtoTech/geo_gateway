@@ -9,6 +9,10 @@
 % (Using application:set_env())
 
 load_configuration_test_() ->
+	% TODO Allows to specify the module responsible for loading the gateway configuration.
+	% Defines a behaviour for this module (simply a load_config or get_config callback).
+	% Then here for test create a config_loader that just gives back value provided
+	% to it.
 	[
 		{"Loads configuration from configuration.json file by default",
 		fun() ->
