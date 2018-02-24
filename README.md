@@ -63,6 +63,16 @@ sudo wget https://s3.amazonaws.com/rebar3/rebar3 -O /usr/bin/rebar3
 sudo chmod +x /usr/bin/rebar3
 ```
 
+# Use it
+
+## Create a configuration file
+
+You can use your configuration file from a sample to get started rapidly.
+
+```
+cp ./priv/conf/configuration.json.sample ./priv/conf/configuration.json
+```
+
 ## Build
 -----
 

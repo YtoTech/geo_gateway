@@ -52,6 +52,6 @@
 	"smtp_gateway": {
 		"dumps_incoming": true,
 		"dumps_directory": "dumps/",
-		"port": 25
+		"port": 2525
 	}
 }
