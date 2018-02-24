@@ -31,7 +31,9 @@ Erlang Solutions provides a great Erlang builds for many platforms.
 
 Refer to their download page: https://packages.erlang-solutions.com/erlang/
 
-### Debian-based
+To control the build process, you can also use [kerl](https://github.com/kerl/kerl).
+
+### Example for Debian
 
 Recommended method: install from repository.
 
@@ -45,6 +47,20 @@ Then install the complete distribution:
 ```
 sudo apt-get update
 sudo apt-get install esl-erlang
+```
+
+## Install Rebar3
+
+See [official installation instructions](https://www.rebar3.org/docs/getting-started#section-installing-binary).
+
+The easiest is to download the latest binary build of Rebar3, place in a directory
+and add it to your path.
+
+```
+# These instructions are only provided as example: please refer to official instructions.
+# This is a system-wide install.
+sudo wget https://s3.amazonaws.com/rebar3/rebar3 -O /usr/bin/rebar3
+sudo chmod +x /usr/bin/rebar3
 ```
 
 ## Build
