@@ -23,6 +23,30 @@ pieces of network and messaging software.
 
 An OTP application
 
+# Installation
+
+## Install Erlang
+
+Erlang Solutions provides a great Erlang builds for many platforms.
+
+Refer to their download page: https://packages.erlang-solutions.com/erlang/
+
+### Debian-based
+
+Recommended method: install from repository.
+
+```
+wget https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb
+sudo dpkg -i erlang-solutions_1.0_all.deb
+```
+
+Then install the complete distribution:
+
+```
+sudo apt-get update
+sudo apt-get install esl-erlang
+```
+
 ## Build
 -----
 
