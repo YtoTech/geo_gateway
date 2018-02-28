@@ -10,7 +10,7 @@
 
 %% API functions.
 -export([
-	start_link/0, load_config/0, set_config/1
+	start_link/0, stop/0, load_config/0, set_config/1
 ]).
 %% gen_server callbacks.
 -export([
@@ -22,7 +22,22 @@
 %%====================================================================
 
 start_link() ->
-	gen_server:start_link({local,gateway_config_loader_process_dict}, ?MODULE, [], []).
+	gen_server:start_link({local, gateway_config_loader_process_dict}, ?MODULE, [], []).
+
+stop() ->
+	gen_server:stop(gateway_config_loader_process_dict).
+
+-spec load_config() -> #{devices => map(), forwarders => map(), smtp_gateway => map(), users => map()}.
+load_config() ->
+	gen_server:call(gateway_config_loader_process_dict, load_config).
+
+-spec set_config(Config :: map()) -> ok.
+set_config(Config) ->
+	gen_server:call(gateway_config_loader_process_dict, {set_config, Config}).
+
+%%====================================================================
+%% Internal functions
+%%====================================================================
 
 init([]) ->
 	{ok, undefined}.
@@ -38,15 +53,3 @@ handle_call({set_config, Config}, _From, _State) ->
 
 handle_call(_Request, _From, State) ->
 	{noreply, State}.
-
--spec load_config() -> #{devices => map(), forwarders => map(), smtp_gateway => map(), users => map()}.
-load_config() ->
-	gen_server:call(gateway_config_loader_process_dict, load_config).
-
--spec set_config(Config :: map()) -> ok.
-set_config(Config) ->
-	gen_server:call(gateway_config_loader_process_dict, {set_config, Config}).
-
-%%====================================================================
-%% Internal functions
-%%====================================================================

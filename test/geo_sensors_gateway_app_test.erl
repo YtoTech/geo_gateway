@@ -65,8 +65,8 @@ load_configuration_test_() ->
 %%% SETUP FUNCTIONS %%%
 %%%%%%%%%%%%%%%%%%%%%%%
 start() ->
-	{ok, Pid} = gateway_config_loader_process_dict:start_link(),
-	Pid.
+	{ok, _} = gateway_config_loader_process_dict:start_link(),
+	undefined.
 
-stop(Pid) ->
-	gen_server:stop(Pid).
+stop(_) ->
+	ok = gateway_config_loader_process_dict:stop().
