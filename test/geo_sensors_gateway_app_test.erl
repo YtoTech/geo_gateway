@@ -51,6 +51,7 @@ forwarding_test_() ->
 		{"We can forward to a simple test box receiver",
 		?setup_config(fun() ->\
 			{ok, _} = application:ensure_all_started(geo_sensors_gateway)
+			% TODO No just send a sample payload to the server. (Use a true SMTP send to 2525)
 		end, #{
 			users => #{},
 			devices => #{
@@ -64,6 +65,8 @@ forwarding_test_() ->
 				port => 2525
 			},
 			forwarders => #{
+				% TODO Actually use a simple module forwarder / test simple module forwarder.
+				% (So we can specify options as receiver module, drop ratio, etc.).
 				"file_dump" => #{
 					"module" => "example_forwarder_file_dump",
 					"parameters" => #{
