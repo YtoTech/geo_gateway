@@ -45,6 +45,7 @@ init([]) ->
 		devices := Devices,
 		forwarders := Forwarders
 	} = ConfigLoader:load_config(),
+	% io:format("Users are ~p~n", [Users]),
 	SmtpServer = {
 		gen_sensors_gateway,
 		{gen_smtp_server, start_link, [smtp_server, [[

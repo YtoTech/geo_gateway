@@ -49,11 +49,27 @@ load_configuration_test_() ->
 forwarding_test_() ->
 	[
 		{"We can forward to a simple test box receiver",
-		?setup_config(fun() ->\
-			{ok, _} = application:ensure_all_started(geo_sensors_gateway)
-			% TODO No just send a sample payload to the server. (Use a true SMTP send to 2525)
+		?setup_config(fun() ->
+			{ok, _} = application:ensure_all_started(geo_sensors_gateway),
+			% TODO Use a define to reuse it.
+			SampleEmail = {
+				"test@ytotech.com", ["receiver@ytotech.com"],
+				"Subject: testing\r\nFrom: test@ytotech.com \r\nTo: receiver@ytotech.com \r\n\r\n$GPRMC,163734.00,A,4434.34454,N,00046.44022,E,0.015,0.00,230917,,,A*67"
+			},
+			TestGatewayOptions = [{relay, "localhost"}, {username, "annon"}, {password, "coincoin"}, {port, 2525}],
+			gen_smtp_client:send_blocking(SampleEmail, TestGatewayOptions)
 		end, #{
-			users => #{},
+			users => #{
+				<<"annon">> => #{
+					email => <<"test@ytotech.com">>,
+					password => <<"coincoin">>,
+					device => <<"ercogener_genloc_341e">>,
+					dumps_incoming => false,
+					forwarders => [
+						"file_dump"
+					]
+				}
+			},
 			devices => #{
 				"ercogener_genloc_341e" => #{
 					"manufacturer" => "Ercogener",
