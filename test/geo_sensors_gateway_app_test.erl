@@ -4,10 +4,6 @@
 -author('yoan@ytotech.com').
 -include_lib("eunit/include/eunit.hrl").
 
-% TODO Create setup and teardown to start and stop app between tests.
-% Also allows to pass parameters to app before starting it.
-% (Using application:set_env())
-
 -define(setup(F), {setup, fun start/0, fun stop/1, F}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -15,10 +11,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load_configuration_test_() ->
-	% TODO Allows to specify the module responsible for loading the gateway configuration.
-	% Defines a behaviour for this module (simply a load_config or get_config callback).
-	% Then here for test create a config_loader that just gives back value provided
-	% to it.
 	[
 		{"Loads configuration from configuration.json file by default",
 		fun() ->
