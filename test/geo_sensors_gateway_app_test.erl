@@ -46,14 +46,33 @@ load_configuration_test_() ->
 		end, #{})}
 	].
 
-% forwarding_test_() ->
-% 	[
-% 		{"We can forward to a simple test box receiver",
-% 		fun() ->
-% 			{StartAppStatus, ok} = application:ensure_all_started(geo_sensors_gateway),
-% 			?assertEqual(ok, StartAppStatus),
-% 			ok = application:stop(geo_sensors_gateway)
-% 		end}.
+forwarding_test_() ->
+	[
+		{"We can forward to a simple test box receiver",
+		?setup_config(fun() ->\
+			{ok, _} = application:ensure_all_started(geo_sensors_gateway)
+		end, #{
+			users => #{},
+			devices => #{
+				"ercogener_genloc_341e" => #{
+					"manufacturer" => "Ercogener",
+					"range" => "GenLoc",
+					"model" => "451e EaseLoc"
+				}
+			},
+			smtp_gateway => #{
+				port => 2525
+			},
+			forwarders => #{
+				"file_dump" => #{
+					"module" => "example_forwarder_file_dump",
+					"parameters" => #{
+						"path" => "dumps/"
+					}
+				}
+			}
+		})}
+	].
 
 % TODO Test for forwarding fault-tolerance:
 % * launch a geo_sensors_gateway application, with one forwarder ;
