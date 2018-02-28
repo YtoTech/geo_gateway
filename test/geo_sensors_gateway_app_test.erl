@@ -8,6 +8,12 @@
 % Also allows to pass parameters to app before starting it.
 % (Using application:set_env())
 
+-define(setup(F), {setup, fun start/0, fun stop/1, F}).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% TESTS DESCRIPTIONS %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 load_configuration_test_() ->
 	% TODO Allows to specify the module responsible for loading the gateway configuration.
 	% Defines a behaviour for this module (simply a load_config or get_config callback).
@@ -37,16 +43,14 @@ load_configuration_test_() ->
 			?assertEqual(no_configuration, ReasonForApp)
 		end},
 		{"Fails if the config specified is void",
-		fun() ->
-			% TODO Start it in a setup before all tests.
-			{ok, _} = gateway_config_loader_process_dict:start_link(),
+		?setup(fun() ->
 			ok = application:set_env(geo_sensors_gateway, gateway_config_loader, "gateway_config_loader_process_dict", [{persistent, true}]),
 			ok = gateway_config_loader_process_dict:set_config(#{}),
 			{StartAppStatus, Reason} = application:ensure_all_started(geo_sensors_gateway),
 			?assertEqual(error, StartAppStatus),
 			{geo_sensors_gateway, {{ReasonForApp, _}, _}} = Reason,
 			?assertEqual({badmatch,#{}}, ReasonForApp)
-		end}
+		end)}
 	].
 
 % TODO Test for forwarding fault-tolerance:
@@ -56,3 +60,13 @@ load_configuration_test_() ->
 % * all messages must have been correctly forwarder to the receiver at the end of the test.
 
 % If we need mocking: https://github.com/eproxus/meck
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%% SETUP FUNCTIONS %%%
+%%%%%%%%%%%%%%%%%%%%%%%
+start() ->
+	{ok, Pid} = gateway_config_loader_process_dict:start_link(),
+	Pid.
+
+stop(Pid) ->
+	gen_server:stop(Pid).
