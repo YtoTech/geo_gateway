@@ -38,12 +38,14 @@ load_configuration_test_() ->
 		end},
 		{"Fails if the config specified is void",
 		fun() ->
+			% TODO Start it in a setup before all tests.
+			{ok, _} = gateway_config_loader_process_dict:start_link(),
 			ok = application:set_env(geo_sensors_gateway, gateway_config_loader, "gateway_config_loader_process_dict", [{persistent, true}]),
 			ok = gateway_config_loader_process_dict:set_config(#{}),
 			{StartAppStatus, Reason} = application:ensure_all_started(geo_sensors_gateway),
 			?assertEqual(error, StartAppStatus),
 			{geo_sensors_gateway, {{ReasonForApp, _}, _}} = Reason,
-			?assertEqual({badmatch,undefined}, ReasonForApp)
+			?assertEqual({badmatch,#{}}, ReasonForApp)
 		end}
 	].
 
