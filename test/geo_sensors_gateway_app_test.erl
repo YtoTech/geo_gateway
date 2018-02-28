@@ -4,7 +4,10 @@
 -author('yoan@ytotech.com').
 -include_lib("eunit/include/eunit.hrl").
 
--define(setup(F), {setup, fun start/0, fun stop/1, F}).
+-define(
+	setup_config(F, Config),
+	{setup, fun() -> start_config(Config) end, fun stop_config/1, F}
+).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% TESTS DESCRIPTIONS %%%
@@ -35,15 +38,22 @@ load_configuration_test_() ->
 			?assertEqual(no_configuration, ReasonForApp)
 		end},
 		{"Fails if the config specified is void",
-		?setup(fun() ->
-			ok = application:set_env(geo_sensors_gateway, gateway_config_loader, "gateway_config_loader_process_dict", [{persistent, true}]),
-			ok = gateway_config_loader_process_dict:set_config(#{}),
+		?setup_config(fun() ->
 			{StartAppStatus, Reason} = application:ensure_all_started(geo_sensors_gateway),
 			?assertEqual(error, StartAppStatus),
 			{geo_sensors_gateway, {{ReasonForApp, _}, _}} = Reason,
 			?assertEqual({badmatch,#{}}, ReasonForApp)
-		end)}
+		end, #{})}
 	].
+
+% forwarding_test_() ->
+% 	[
+% 		{"We can forward to a simple test box receiver",
+% 		fun() ->
+% 			{StartAppStatus, ok} = application:ensure_all_started(geo_sensors_gateway),
+% 			?assertEqual(ok, StartAppStatus),
+% 			ok = application:stop(geo_sensors_gateway)
+% 		end}.
 
 % TODO Test for forwarding fault-tolerance:
 % * launch a geo_sensors_gateway application, with one forwarder ;
@@ -56,9 +66,11 @@ load_configuration_test_() ->
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% SETUP FUNCTIONS %%%
 %%%%%%%%%%%%%%%%%%%%%%%
-start() ->
+start_config(Config) ->
 	{ok, _} = gateway_config_loader_process_dict:start_link(),
+	ok = gateway_config_loader_process_dict:set_config(Config),
+	ok = application:set_env(geo_sensors_gateway, gateway_config_loader, "gateway_config_loader_process_dict", [{persistent, true}]),
 	undefined.
 
-stop(_) ->
+stop_config(_) ->
 	ok = gateway_config_loader_process_dict:stop().
