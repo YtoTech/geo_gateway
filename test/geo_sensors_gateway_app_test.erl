@@ -46,6 +46,43 @@ load_configuration_test_() ->
 		end, #{})}
 	].
 
+-define(
+	SAMPLE_CONFIG,
+	#{
+		users => #{
+			<<"annon">> => #{
+				email => <<"test@ytotech.com">>,
+				password => <<"coincoin">>,
+				device => <<"ercogener_genloc_341e">>,
+				dumps_incoming => false,
+				forwarders => [
+					<<"file_dump">>
+				]
+			}
+		},
+		devices => #{
+			<<"ercogener_genloc_341e">> => #{
+				manufacturer => <<"Ercogener">>,
+				range => <<"GenLoc">>,
+				model => <<"451e EaseLoc">>
+			}
+		},
+		smtp_gateway => #{
+			port => 2525
+		},
+		forwarders => #{
+			% TODO Actually use a simple module forwarder / test simple module forwarder.
+			% (So we can specify options as receiver module, drop ratio, etc.).
+			<<"file_dump">> => #{
+				module => <<"example_forwarder_file_dump">>,
+				parameters => #{
+					path => "dumps/"
+				}
+			}
+		}
+	}
+).
+
 forwarding_test_() ->
 	[
 		{"We can forward to a simple test box receiver",
@@ -59,39 +96,7 @@ forwarding_test_() ->
 			TestGatewayOptions = [{relay, "localhost"}, {username, "annon"}, {password, "coincoin"}, {port, 2525}],
 			gen_smtp_client:send_blocking(SampleEmail, TestGatewayOptions),
 			application:stop(geo_sensors_gateway)
-		end, #{
-			users => #{
-				<<"annon">> => #{
-					email => <<"test@ytotech.com">>,
-					password => <<"coincoin">>,
-					device => <<"ercogener_genloc_341e">>,
-					dumps_incoming => false,
-					forwarders => [
-						<<"file_dump">>
-					]
-				}
-			},
-			devices => #{
-				<<"ercogener_genloc_341e">> => #{
-					manufacturer => <<"Ercogener">>,
-					range => <<"GenLoc">>,
-					model => <<"451e EaseLoc">>
-				}
-			},
-			smtp_gateway => #{
-				port => 2525
-			},
-			forwarders => #{
-				% TODO Actually use a simple module forwarder / test simple module forwarder.
-				% (So we can specify options as receiver module, drop ratio, etc.).
-				<<"file_dump">> => #{
-					module => <<"example_forwarder_file_dump">>,
-					parameters => #{
-						path => "dumps/"
-					}
-				}
-			}
-		})}
+		end, ?SAMPLE_CONFIG)}
 	].
 
 % TODO Test for forwarding fault-tolerance:
