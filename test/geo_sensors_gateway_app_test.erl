@@ -56,7 +56,7 @@ load_configuration_test_() ->
 				device => <<"ercogener_genloc_341e">>,
 				dumps_incoming => false,
 				forwarders => [
-					<<"file_dump">>
+					<<"erlang_module_forwarder">>
 				]
 			}
 		},
@@ -71,16 +71,29 @@ load_configuration_test_() ->
 			port => 2525
 		},
 		forwarders => #{
-			% TODO Actually use a simple module forwarder / test simple module forwarder.
-			% (So we can specify options as receiver module, drop ratio, etc.).
-			<<"file_dump">> => #{
-				module => <<"example_forwarder_file_dump">>,
+			<<"erlang_module_forwarder">> => #{
+				% TODO Allows to specify drop ratio.
+				module => <<"example_module_forwarder">>,
 				parameters => #{
-					path => "dumps/"
+					target_module => <<"test_receiver">>
 				}
 			}
 		}
 	}
+).
+
+-define(
+	PAYLOAD_PATTERN,
+	{ok, #{
+		date := _,
+		format := _,
+		longitude := _,
+		latitude := _,
+		raw := _,
+		status := _,
+		time := _,
+		timestamp := _
+	}}
 ).
 
 forwarding_test_() ->
@@ -95,7 +108,10 @@ forwarding_test_() ->
 			},
 			TestGatewayOptions = [{relay, "localhost"}, {username, "annon"}, {password, "coincoin"}, {port, 2525}],
 			gen_smtp_client:send_blocking(SampleEmail, TestGatewayOptions),
-			application:stop(geo_sensors_gateway)
+			application:stop(geo_sensors_gateway),
+			ReceivedPaylods = test_receiver:get_received_payloads(),
+			?assertEqual(1, length(ReceivedPaylods)),
+			?assertMatch([?PAYLOAD_PATTERN], ReceivedPaylods)
 		end, ?SAMPLE_CONFIG)}
 	].
 
@@ -114,7 +130,9 @@ start_config(Config) ->
 	{ok, _} = gateway_config_loader_process_dict:start_link(),
 	ok = gateway_config_loader_process_dict:set_config(Config),
 	ok = application:set_env(geo_sensors_gateway, gateway_config_loader, "gateway_config_loader_process_dict", [{persistent, true}]),
+	{ok, _} = test_receiver:start_link(),
 	undefined.
 
 stop_config(_) ->
-	ok = gateway_config_loader_process_dict:stop().
+	ok = gateway_config_loader_process_dict:stop(),
+	ok = test_receiver:stop().

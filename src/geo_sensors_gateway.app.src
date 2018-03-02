@@ -29,7 +29,8 @@
         smtp_server,
         gateway_config_loader,
         gateway_config_loader_json,
-        gateway_config_loader_process_dict
+        gateway_config_loader_process_dict,
+        gateway_module_receiver
     ]},
 
     {maintainers, ["Yoan Tournade"]},
