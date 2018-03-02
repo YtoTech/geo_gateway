@@ -83,6 +83,14 @@ load_configuration_test_() ->
 ).
 
 -define(
+	SAMPLE_EMAIL,
+	{
+		"test@ytotech.com", ["receiver@ytotech.com"],
+		"Subject: testing\r\nFrom: test@ytotech.com \r\nTo: receiver@ytotech.com \r\n\r\n$GPRMC,163734.00,A,4434.34454,N,00046.44022,E,0.015,0.00,230917,,,A*67"
+	}
+).
+
+-define(
 	PAYLOAD_PATTERN,
 	{ok, #{
 		date := _,
@@ -102,12 +110,8 @@ forwarding_test_() ->
 		?setup_config(fun() ->
 			{ok, _} = application:ensure_all_started(geo_sensors_gateway),
 			% TODO Use a define to reuse it.
-			SampleEmail = {
-				"test@ytotech.com", ["receiver@ytotech.com"],
-				"Subject: testing\r\nFrom: test@ytotech.com \r\nTo: receiver@ytotech.com \r\n\r\n$GPRMC,163734.00,A,4434.34454,N,00046.44022,E,0.015,0.00,230917,,,A*67"
-			},
 			TestGatewayOptions = [{relay, "localhost"}, {username, "annon"}, {password, "coincoin"}, {port, 2525}],
-			gen_smtp_client:send_blocking(SampleEmail, TestGatewayOptions),
+			gen_smtp_client:send_blocking(?SAMPLE_EMAIL, TestGatewayOptions),
 			application:stop(geo_sensors_gateway),
 			ReceivedPaylods = test_receiver:get_received_payloads(),
 			?assertEqual(1, length(ReceivedPaylods)),
