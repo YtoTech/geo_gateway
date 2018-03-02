@@ -72,10 +72,47 @@ load_configuration_test_() ->
 		},
 		forwarders => #{
 			<<"erlang_module_forwarder">> => #{
-				% TODO Allows to specify drop ratio.
 				module => <<"example_module_forwarder">>,
 				parameters => #{
 					target_module => <<"test_receiver">>
+				}
+			}
+		}
+	}
+).
+
+% TODO How to specify the drop ratio without duplicating all the config.
+-define(
+	SAMPLE_CONFIG_DROP_25,
+	#{
+		users => #{
+			<<"annon">> => #{
+				email => <<"test@ytotech.com">>,
+				password => <<"coincoin">>,
+				device => <<"ercogener_genloc_341e">>,
+				dumps_incoming => false,
+				forwarders => [
+					<<"erlang_module_forwarder">>
+				]
+			}
+		},
+		devices => #{
+			<<"ercogener_genloc_341e">> => #{
+				manufacturer => <<"Ercogener">>,
+				range => <<"GenLoc">>,
+				model => <<"451e EaseLoc">>
+			}
+		},
+		smtp_gateway => #{
+			port => 2525
+		},
+		forwarders => #{
+			<<"erlang_module_forwarder">> => #{
+				module => <<"example_module_forwarder">>,
+				parameters => #{
+					target_module => <<"test_receiver">>,
+					drop_strategy => random,
+					drop_rate => 0.25
 				}
 			}
 		}
@@ -88,6 +125,11 @@ load_configuration_test_() ->
 		"test@ytotech.com", ["receiver@ytotech.com"],
 		"Subject: testing\r\nFrom: test@ytotech.com \r\nTo: receiver@ytotech.com \r\n\r\n$GPRMC,163734.00,A,4434.34454,N,00046.44022,E,0.015,0.00,230917,,,A*67"
 	}
+).
+
+-define(
+	TEST_GATEWAY_OPTIONS,
+	[{relay, "localhost"}, {username, "annon"}, {password, "coincoin"}, {port, 2525}]
 ).
 
 -define(
@@ -109,14 +151,33 @@ forwarding_test_() ->
 		{"We can forward to a simple test box receiver",
 		?setup_config(fun() ->
 			{ok, _} = application:ensure_all_started(geo_sensors_gateway),
-			% TODO Use a define to reuse it.
-			TestGatewayOptions = [{relay, "localhost"}, {username, "annon"}, {password, "coincoin"}, {port, 2525}],
-			gen_smtp_client:send_blocking(?SAMPLE_EMAIL, TestGatewayOptions),
+			gen_smtp_client:send_blocking(?SAMPLE_EMAIL, ?TEST_GATEWAY_OPTIONS),
 			application:stop(geo_sensors_gateway),
-			ReceivedPaylods = test_receiver:get_received_payloads(),
-			?assertEqual(1, length(ReceivedPaylods)),
-			?assertMatch([?PAYLOAD_PATTERN], ReceivedPaylods)
-		end, ?SAMPLE_CONFIG)}
+			ReceivedPayloads = test_receiver:get_received_payloads(),
+			?assertEqual(1, length(ReceivedPayloads)),
+			?assertMatch([?PAYLOAD_PATTERN], ReceivedPayloads)
+		end, ?SAMPLE_CONFIG)},
+		{"All payloads are finally forwarded in presence of transient 25 % drop-rate",
+		?setup_config(fun() ->
+			{ok, _} = application:ensure_all_started(geo_sensors_gateway),
+			lists:foreach(
+				fun(_Index) ->
+					% TODO Use async and wait for all only at the end?
+					gen_smtp_client:send_blocking(?SAMPLE_EMAIL, ?TEST_GATEWAY_OPTIONS)
+				end,
+				lists:seq(1, 100)
+			),
+			% TODO Does we need to wait forwarding process has righly terminated?
+			application:stop(geo_sensors_gateway),
+			ReceivedPayloads = test_receiver:get_received_payloads(),
+			?assertEqual(100, length(ReceivedPayloads)),
+			lists:foreach(
+				fun(ReceivedPayload) ->
+					?assertMatch(?PAYLOAD_PATTERN, ReceivedPayload)
+				end,
+				ReceivedPayloads
+			)
+		end, ?SAMPLE_CONFIG_DROP_25)}
 	].
 
 % TODO Test for forwarding fault-tolerance:

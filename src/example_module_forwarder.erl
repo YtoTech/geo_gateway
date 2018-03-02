@@ -11,6 +11,23 @@
 
 -spec forward_one(Reference :: binary(), Payload :: map(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
 forward_one(_Reference, Payloads, User, Device, Forwarder) ->
-	ReceiverModule = binary_to_atom(nested:get([parameters, target_module], Forwarder), unicode),
-	{module, _} = code:ensure_loaded(ReceiverModule),
-	ReceiverModule:on_payload(Payloads, User, Device, Forwarder).
+	case 'forward?'(maps:get(parameters, Forwarder)) of
+		true ->
+			ReceiverModule = binary_to_atom(nested:get([parameters, target_module], Forwarder), unicode),
+			{module, _} = code:ensure_loaded(ReceiverModule),
+			ReceiverModule:on_payload(Payloads, User, Device, Forwarder);
+		_ ->
+			io:format("Failed forwarding~n"),
+			{error, forward_failed}
+	end.
+
+'forward?'(#{drop_strategy := random, drop_rate := DropRate}) ->
+	RandomFloat = rand:uniform(),
+	io:format("~nRandom is ~p~n~n", [RandomFloat]),
+	if
+		RandomFloat < DropRate -> false;
+		true -> true
+	end;
+
+'forward?'(_) ->
+	true.
