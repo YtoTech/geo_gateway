@@ -57,7 +57,8 @@ forwarding_test_() ->
 				"Subject: testing\r\nFrom: test@ytotech.com \r\nTo: receiver@ytotech.com \r\n\r\n$GPRMC,163734.00,A,4434.34454,N,00046.44022,E,0.015,0.00,230917,,,A*67"
 			},
 			TestGatewayOptions = [{relay, "localhost"}, {username, "annon"}, {password, "coincoin"}, {port, 2525}],
-			gen_smtp_client:send_blocking(SampleEmail, TestGatewayOptions)
+			gen_smtp_client:send_blocking(SampleEmail, TestGatewayOptions),
+			application:stop(geo_sensors_gateway)
 		end, #{
 			users => #{
 				<<"annon">> => #{
@@ -66,15 +67,15 @@ forwarding_test_() ->
 					device => <<"ercogener_genloc_341e">>,
 					dumps_incoming => false,
 					forwarders => [
-						"file_dump"
+						<<"file_dump">>
 					]
 				}
 			},
 			devices => #{
-				"ercogener_genloc_341e" => #{
-					"manufacturer" => "Ercogener",
-					"range" => "GenLoc",
-					"model" => "451e EaseLoc"
+				<<"ercogener_genloc_341e">> => #{
+					manufacturer => <<"Ercogener">>,
+					range => <<"GenLoc">>,
+					model => <<"451e EaseLoc">>
 				}
 			},
 			smtp_gateway => #{
@@ -83,10 +84,10 @@ forwarding_test_() ->
 			forwarders => #{
 				% TODO Actually use a simple module forwarder / test simple module forwarder.
 				% (So we can specify options as receiver module, drop ratio, etc.).
-				"file_dump" => #{
-					"module" => "example_forwarder_file_dump",
-					"parameters" => #{
-						"path" => "dumps/"
+				<<"file_dump">> => #{
+					module => <<"example_forwarder_file_dump">>,
+					parameters => #{
+						path => "dumps/"
 					}
 				}
 			}
