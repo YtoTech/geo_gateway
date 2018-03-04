@@ -33,7 +33,7 @@ parse(_Reference, Body, User, Devices) ->
 
 -spec parse_genloc(Body :: binary(), User :: map(), Device :: map()) -> {'ok', list()}.
 parse_genloc(Body, _User, _Device) ->
-	io:format("~p~n", [Body]),
+	% io:format("~p~n", [Body]),
 	% Prepare input: split by lines and trim them.
 	Lines = string:split(Body, <<"\n">>, all),
 	TrimedLines = lists:map(fun (Line) -> string:trim(Line) end, Lines),
@@ -54,10 +54,10 @@ parse_genloc(Body, _User, _Device) ->
 	% Also Python alternative: https://github.com/Knio/pynmea2
 	% Other way is to create a micro-HTTP service dedicated to the task.
 	% --> This can help others and may be a service for geo-gateway.com.
-	io:format("~p~n", [PayloadLines]),
+	% io:format("~p~n", [PayloadLines]),
 	Payload = lists:map(
 		fun (Line) ->
-			io:format("Line: ~s~n", [Line]),
+			% io:format("Line: ~s~n", [Line]),
 			case string:split(Line, <<",">>) of
 				[<<"$GPLOC">>,_] ->
 					parse_nmea(<<"GPLOC">>, Line);
@@ -72,12 +72,12 @@ parse_genloc(Body, _User, _Device) ->
 		end,
 		PayloadLines
 	),
-	io:format("~p~n", [Payload]),
+	% io:format("~p~n", [Payload]),
 	{ok, Payload}.
 
 -spec parse_nmea(Type :: binary(), Line :: binary()) -> {'ok', map()}.
 parse_nmea(<<"GPLOC">>, Line) ->
-	io:format("GPLOC: ~s~n", [Line]),
+	% io:format("GPLOC: ~s~n", [Line]),
 	Splitted = string:split(Line, <<",">>, all),
 	Elements = array:from_list(Splitted),
 	Time = parse_time_hhmmssmm(array:get(3, Elements)),
@@ -95,7 +95,7 @@ parse_nmea(<<"GPLOC">>, Line) ->
 		raw => Line
 	}};
 parse_nmea(<<"GPRMC">>, Line) ->
-	io:format("GPRMC: ~s~n", [Line]),
+	% io:format("GPRMC: ~s~n", [Line]),
 	Splitted = string:split(Line, <<",">>, all),
 	Elements = array:from_list(Splitted),
 	Date = parse_date_ddmmyy(array:get(9, Elements)),

@@ -32,8 +32,8 @@
 %% session. You can also return `{stop, Reason, Message}' where the session will exit with Reason
 %% and send Message to the client.
 -spec init(Hostname :: binary(), SessionCount :: non_neg_integer(), Address :: tuple(), Options :: list()) -> {'ok', string(), #state{}} | {'stop', any(), string()}.
-init(Hostname, SessionCount, Address, Options) ->
-	io:format("peer: ~p~n", [Address]),
+init(Hostname, SessionCount, _Address, Options) ->
+	% io:format("peer: ~p~n", [Address]),
 	case SessionCount > 20 of
 		false ->
 			Banner = [Hostname, " ESMTP YtoTech_GeoSensors_Gateway_SMTP"],
@@ -58,8 +58,8 @@ handle_HELO(<<"invalid">>, State) ->
 	{error, "554 invalid hostname", State};
 handle_HELO(<<"trusted_host">>, State) ->
 	{ok, State}; %% no size limit because we trust them.
-handle_HELO(Hostname, State) ->
-	io:format("HELO from ~s~n", [Hostname]),
+handle_HELO(_Hostname, State) ->
+	% io:format("HELO from ~s~n", [Hostname]),
 	{ok, 655360, State}. % 640kb of HELO should be enough for anyone.
 	%If {ok, State} was returned here, we'd use the default 10mb limit
 
@@ -74,10 +74,10 @@ handle_HELO(Hostname, State) ->
 handle_EHLO(<<"invalid">>, _Extensions, State) ->
 	% contrived example
 	{error, "554 invalid hostname", State};
-handle_EHLO(Hostname, Extensions, State) ->
-	io:format("EHLO from ~s~n", [Hostname]),
+handle_EHLO(_Hostname, Extensions, State) ->
+	% io:format("EHLO from ~s~n", [Hostname]),
 	% You can advertise additional extensions, or remove some defaults
-    io:format("auth is ~w~n", [proplists:get_value(auth, State#state.options, false)]),
+    % io:format("auth is ~w~n", [proplists:get_value(auth, State#state.options, false)]),
 	MyExtensions = case proplists:get_value(auth, State#state.options, false) of
 		true ->
 			% auth is enabled, so advertise it.
@@ -97,7 +97,7 @@ handle_MAIL(<<"badguy@blacklist.com">>, State) ->
 	{error, "552 Not Managed", State};
 handle_MAIL(From, State) ->
 	% Filter the accepted mails. TODO Do we really need to reject using FROM?
-	io:format("Mail from ~s~n", [From]),
+	% io:format("Mail from ~s~n", [From]),
 	case maps:get(email, State#state.user) of
 		From ->
 			{ok, State};
@@ -121,23 +121,23 @@ handle_RCPT_extension(Extension, _State) ->
 -spec handle_DATA(From :: binary(), To :: [binary(),...], Data :: binary(), State :: #state{}) -> {'ok', string(), #state{}} | {'error', string(), #state{}}.
 handle_DATA(_From, _To, <<>>, State) ->
 	{error, "552 Message too small", State};
-handle_DATA(From, To, Data, State) ->
+handle_DATA(_From, _To, Data, State) ->
 	% Some kind of unique id.
 	Reference = erlang:iolist_to_binary(lists:flatten([
 		io_lib:format("~2.16.0b", [X]) || <<X>> <= erlang:md5(term_to_binary(unique_id()))
 	])),
 	% We do not relay emails but process them.
-	io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
+	% io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
 	% We always try to parse emails.
 	% TODO Refactorize and simplify: this is messy and we get lost here.
 	% --> Create functions for decoding, parsing and/or forwarding?
 	DumpsRawMessage = try mimemail:decode(Data) of
-		{_Type, _SubType, Headers, _Properties, Body} ->
-			io:format("From: ~s~nTo: ~s~n", [From, To]),
-			io:format("Headers: ~p~n", [Headers]),
-			io:format("Body: ~s~n", [Body]),
+		{_Type, _SubType, _Headers, _Properties, Body} ->
+			% io:format("From: ~s~nTo: ~s~n", [From, To]),
+			% io:format("Headers: ~p~n", [Headers]),
+			% io:format("Body: ~s~n", [Body]),
 			User = State#state.user,
-			io:format("User: ~p~n", [User]),
+			% io:format("User: ~p~n", [User]),
 			% Now parse the actual sensor payload.
 			% TODO Make this customizable.
 			case device_payload_parser_example:parse(
@@ -147,7 +147,7 @@ handle_DATA(From, To, Data, State) ->
 				proplists:get_value(devices, State#state.options, #{})
 			) of
 				{ok, Payload, Device} ->
-					io:format("Parsed payload: ~p~n", [Payload]),
+					% io:format("Parsed payload: ~p~n", [Payload]),
 					% When payload extracted from the mail,
 					% give it to the forwarder module that will handle its
 					% transmission.
@@ -167,7 +167,7 @@ handle_DATA(From, To, Data, State) ->
 			end,
 			% If dumping is enabled on the user, dump all messages, whatever the outcome.
 			% ---> Will be usefull for debugging. (And make the server iso with the Python one)
-			io:format("dumps_incoming: ~p~n", [User]),
+			% io:format("dumps_incoming: ~p~n", [User]),
 			maps:get(dumps_incoming, User, false)
 	catch
 		What:Why ->
@@ -177,7 +177,7 @@ handle_DATA(From, To, Data, State) ->
 	% Function to dump messages somewhere for analysis.
 	DumpToFile = fun(Path, Name) ->
 		File = erlang:iolist_to_binary([Path, Name, <<".eml">>]),
-		io:format("Dump incoming message to ~s~n", [File]),
+		% io:format("Dump incoming message to ~s~n", [File]),
 		case filelib:ensure_dir(File) of
 			ok ->
 				file:write_file(File, Data);

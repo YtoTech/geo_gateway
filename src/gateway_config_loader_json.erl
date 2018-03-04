@@ -28,7 +28,7 @@ load_config() ->
 	% The users are indexed by username, because we encounter
 	% first the AUTH in the process of receiving a mail.
 	{ok, ConfigFilePath} = application:get_env(geo_sensors_gateway, json_configuration_file),
-	io:format("Using configuration file ~s~n", [ConfigFilePath]),
+	% io:format("Using configuration file ~s~n", [ConfigFilePath]),
 	ConfigurationFileContent = case file:read_file(ConfigFilePath) of
 		{ok, CFC} ->
 			CFC;
@@ -85,7 +85,7 @@ load_config() ->
 		end,
 		maps:get(<<"users">>, ConfigurationAsJson, {})
 	),
-	io:format("Users ~p ~n", [Users]),
+	% io:format("Users ~p ~n", [Users]),
 	Devices = maps:map(
 		fun(_DeviceId, Device) ->
 			#{
@@ -97,7 +97,7 @@ load_config() ->
 		end,
 		maps:get(<<"devices">>, ConfigurationAsJson, {})
 	),
-	io:format("Devices ~p ~n", [Devices]),
+	% io:format("Devices ~p ~n", [Devices]),
 	Forwarders = maps:map(
 		fun(_ForwarderId, Forwarder) ->
 			#{
@@ -107,9 +107,9 @@ load_config() ->
 		end,
 		maps:get(<<"forwarders">>, ConfigurationAsJson, {})
 	),
-	io:format("Forwarders ~p ~n", [Forwarders]),
+	% io:format("Forwarders ~p ~n", [Forwarders]),
 	SmtpGateway = maps:fold(MapKeyToAtom, #{}, maps:get(<<"smtp_gateway">>, ConfigurationAsJson, #{})),
-	io:format("SmtpGateway ~p ~n", [SmtpGateway]),
+	% io:format("SmtpGateway ~p ~n", [SmtpGateway]),
 	#{
 		users => Users,
 		devices => Devices,

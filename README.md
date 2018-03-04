@@ -92,6 +92,8 @@ TODO Installation instructions for Erlang
 * `apt install inotify-tools` (for dev)
 
 % TODO Use error_logger:info_msg("") for logging
+--> Use a logging facility and be able to configure it to stdout or file,
+with a defined verbosity. (let message dump in stdout only in debug)
 
 TODO Put examples in /doc/examples cf http://erlang.org/doc/design_principles/applications.html
 

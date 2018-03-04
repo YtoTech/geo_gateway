@@ -29,9 +29,9 @@ start_link() ->
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-	io:format("Env is ~p~n", [application:get_all_env()]),
+	% io:format("Env is ~p~n", [application:get_all_env()]),
 	% Load application configuration.
-	io:format("Env is ~p~n", [application:get_env(gateway_config_loader)]),
+	% io:format("Env is ~p~n", [application:get_env(gateway_config_loader)]),
 	{ok, ConfigLoaderName} = application:get_env(gateway_config_loader),
 	ConfigLoader = list_to_atom(ConfigLoaderName),
 	{module, _} = code:ensure_loaded(ConfigLoader),

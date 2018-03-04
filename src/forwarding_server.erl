@@ -65,9 +65,9 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 				{ok, Forwarder} ->
 					% We may use gproc:send for notifying the registered forwarders.
 					% That may be totally overkill. https://github.com/uwiger/gproc#use-case-pubsub-patterns
-					io:format("Forwarder ~p~n", [Forwarder]),
+					% io:format("Forwarder ~p~n", [Forwarder]),
 					Module = binary_to_atom(maps:get(module, Forwarder), unicode),
-					io:format("Forwarder ~s~n", [Module]),
+					% io:format("Forwarder ~s~n", [Module]),
 					case code:ensure_loaded(Module) of
 						{module, Module} ->
 							% TODO Handle error?

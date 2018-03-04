@@ -17,7 +17,7 @@ sexagesimal_to_decimal(Sexagesimal, Cardinality) ->
 	ddm_to_decimal(Sexagesimal, Cardinality).
 
 ddm_to_decimal(Sexagesimal, Cardinality) ->
-	io:format("Sexagesimal: ~p Cardinality: ~p ~n", [Sexagesimal,Cardinality]),
+	% io:format("Sexagesimal: ~p Cardinality: ~p ~n", [Sexagesimal,Cardinality]),
 	% Longitude: 2 digits for degree (0 to 89). Latitude: 3 digits for degree (0 to 179).
 	DegreeNumberDigits = case Cardinality of
 		<<"S">> -> 2;
@@ -27,7 +27,7 @@ ddm_to_decimal(Sexagesimal, Cardinality) ->
 	end,
 	{Degrees, _} = string:to_integer(string:slice(Sexagesimal, 0, DegreeNumberDigits)),
 	{Minutes, _} = string:to_float(string:slice(Sexagesimal, DegreeNumberDigits)),
-	io:format("Degrees: ~p Minutes: ~p ~n", [Degrees,Minutes]),
+	% io:format("Degrees: ~p Minutes: ~p ~n", [Degrees,Minutes]),
 	DecimalNoCardinality = Degrees + Minutes / 60,
 	case Cardinality of
 		<<"S">> -> -DecimalNoCardinality;
