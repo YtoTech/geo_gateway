@@ -44,21 +44,31 @@ forward(Reference, Payload, User, Device, Forwarders) ->
 init([]) ->
 	{ok, undefined}.
 
+handle_cast({do_forward, {Reference, Payload, User, Device, Forwarders}}, State) ->
+	% TODO Here manage failure: supervize forwarding processes, trap failures,
+	% retries. Or in do_forward for each forwarding? Requires a State? Also timeouts?
+	do_forward(Reference, Payload, User, Device, Forwarders),
+	{noreply, State};
+
 handle_cast(_Request, State) ->
 	{noreply, State}.
 
 handle_call({forward, {Reference, Payload, User, Device, Forwarders}}, _From, State) ->
-	{reply, do_forward(Reference, Payload, User, Device, Forwarders), State};
+	% Here generate an async cast to itself to actually forward.
+	% TODO Add it to the transmission queue? Add it in state? Or our queue is "message passing"?
+	{
+		reply,
+		gen_server:cast(gateway_forwarding_server, {do_forward, {Reference, Payload, User, Device, Forwarders}}),
+		State
+	};
 
 handle_call(_Request, _From, State) ->
 	{noreply, State}.
-
 
 -spec do_forward(Reference :: binary(), Payload :: list(), User :: map(), Device :: map(), Forwarders :: list()) -> 'ok'.
 do_forward(Reference, Payload, User, Device, Forwarders) ->
 	% Get the forwarders from user config and transfer the payload to each of
 	% them.
-	% TODO (Add it to the transmission queue)
 	lists:foreach(
 		fun(ForwarderId) ->
 			case maps:find(ForwarderId, Forwarders) of
