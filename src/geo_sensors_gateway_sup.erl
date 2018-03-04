@@ -80,7 +80,7 @@ init([]) ->
 		[forwarding_server]
 	},
 	Children = [SmtpServer, ForwardingServer],
-	RestartStrategy = {one_for_one, 0, 1},
+	RestartStrategy = {one_for_one, 2, 5},
 	{ok, { RestartStrategy, Children} }.
 
 %%====================================================================
