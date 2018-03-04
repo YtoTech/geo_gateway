@@ -153,7 +153,7 @@ handle_DATA(From, To, Data, State) ->
 					% transmission.
 					% TODO Make this customizable.
 					% TODO Try catch forwarding so we can always dump incoming file!
-					ok = forwarder_example:forward(
+					ok = forwarding_server:forward(
 						Reference,
 						Payload,
 						User,

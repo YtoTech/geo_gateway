@@ -46,8 +46,11 @@ init([]) ->
 		forwarders := Forwarders
 	} = ConfigLoader:load_config(),
 	% io:format("Users are ~p~n", [Users]),
+	% TODO Use the new supervisor spec using a Map to be more readable.
+	% http://erlang.org/doc/man/supervisor.html
+	% http://erlang.org/doc/design_principles/sup_princ.html
 	SmtpServer = {
-		gen_sensors_gateway,
+		gen_smtp_server,
 		{gen_smtp_server, start_link, [smtp_server, [[
 			{port, maps:get(port, SmtpGateway, 25)},
 			{sessionoptions,
@@ -68,7 +71,15 @@ init([]) ->
 		worker,
 		[gen_smtp_server]
 	},
-	Children = [SmtpServer],
+	ForwardingServer = {
+		forwarding_server,
+		{forwarding_server, start_link, []},
+		permanent,
+		10000,
+		worker,
+		[forwarding_server]
+	},
+	Children = [SmtpServer, ForwardingServer],
 	RestartStrategy = {one_for_one, 0, 1},
 	{ok, { RestartStrategy, Children} }.
 

@@ -24,7 +24,7 @@
         example_forwarder_http,
         example_forwarder_mail,
         example_forwarder_module,
-        forwarder_example,
+        forwarding_server,
         geo_sensors_gateway_app,
         geo_sensors_gateway_sup,
         smtp_server,
