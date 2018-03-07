@@ -168,6 +168,7 @@ forwarding_test_() ->
 				lists:seq(1, 100)
 			),
 			% TODO Does we need to wait forwarding process has righly terminated?
+			timer:sleep(50), % The very ugly way.
 			% TODO handle correct shutdown in gateway, else we will loose payloads
 			% during shutdown.
 			application:stop(geo_sensors_gateway),
