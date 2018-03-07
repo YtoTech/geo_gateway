@@ -168,6 +168,8 @@ forwarding_test_() ->
 				lists:seq(1, 100)
 			),
 			% TODO Does we need to wait forwarding process has righly terminated?
+			% TODO handle correct shutdown in gateway, else we will loose payloads
+			% during shutdown.
 			application:stop(geo_sensors_gateway),
 			ReceivedPayloads = test_receiver:get_received_payloads(),
 			?assertEqual(100, length(ReceivedPayloads)),

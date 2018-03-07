@@ -175,9 +175,13 @@ scheduler(State = #state{to_schedule=ToSchedule, running=Running}) ->
 
 launch_worker(Forwarding) ->
 	spawn_link(
-		maps:get(module, Forwarding),
-		maps:get(function, Forwarding),
-		maps:get(args, Forwarding)
+		fun() ->
+			ok = erlang:apply(
+				maps:get(module, Forwarding),
+				maps:get(function, Forwarding),
+				maps:get(args, Forwarding)
+			)
+		end
 	).
 
 % Trap EXIT from forwarding processes.
