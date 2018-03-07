@@ -111,12 +111,14 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 %% Gateway Forwarding Scheduler
 %%====================================================================
 % Naive implementation. Should be in its own module.
+% This could be a gen_server? --> with special handler for trapping exits.
 
 -record(
 	state,
 	{
 		to_schedule = [] :: list(),
-		running = #{} :: map()
+		running = #{} :: map(),
+		is_shuttingdown = false :: bool()
 	}
 ).
 
@@ -134,7 +136,7 @@ schedule(Forwarding) ->
 	{to_schedule, _} = gateway_forwarding_scheduler ! {to_schedule, Forwarding},
 	ok.
 
-scheduler(State = #state{to_schedule=[ToSchedule|Others], running=Running}) ->
+scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others], running=Running}) ->
 	% TODO (Add worker pooling) Take from record: worker pool, forwarding to run.
 	% If N worker processes available, and M task to run,
 	% launch min(N,M) forwarding processes. (linking to them)
@@ -146,16 +148,25 @@ scheduler(State = #state{to_schedule=[ToSchedule|Others], running=Running}) ->
 			Running
 		)
 	});
-scheduler(State = #state{to_schedule=[], running=Running}) ->
+scheduler(State = #state{is_shuttingdown=true, running=#{}}) ->
+	exit(normal);
+scheduler(State = #state{to_schedule=ToSchedule, running=Running}) ->
 	% Here receive and recurse again.
 	receive
 		{to_schedule, Forwarding} ->
-			scheduler(State#state{to_schedule=[Forwarding]});
+			scheduler(State#state{to_schedule=[Forwarding|ToSchedule]});
 		{'EXIT', Pid, normal} ->
 			scheduler(State#state{running=maps:remove(Pid, Running)});
+		{'EXIT', _, shutdown} ->
+			% Continue until running is empty.
+			% TODO Should refuse to schedule after shutting down.
+			% --> schedule/1 must then return an error shutting_down.
+			scheduler(State#state{is_shuttingdown=true});
 		{'EXIT', Pid, Reason} ->
 			io:format("Trapped from ~p: ~p~n", [Pid, Reason]),
-			scheduler(State#state{to_schedule=[maps:get(Pid, Running)], running=maps:remove(Pid, Running)})
+			% TODO Keep track of the number of times the process has been rescheduled.
+			% After N tries, just emit a warning and give up.
+			scheduler(State#state{to_schedule=[maps:get(Pid, Running)|ToSchedule], running=maps:remove(Pid, Running)})
 	end.
 
 launch_worker(Forwarding) ->
