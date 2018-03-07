@@ -118,7 +118,7 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 	{
 		to_schedule = [] :: list(),
 		running = #{} :: map(),
-		is_shuttingdown = false :: bool()
+		is_shuttingdown = false :: boolean()
 	}
 ).
 
@@ -149,6 +149,7 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others],
 		)
 	});
 scheduler(State = #state{is_shuttingdown=true, running=#{}}) ->
+	io:format("Shutting down ok~n"),
 	exit(normal);
 scheduler(State = #state{to_schedule=ToSchedule, running=Running}) ->
 	% Here receive and recurse again.
@@ -161,12 +162,15 @@ scheduler(State = #state{to_schedule=ToSchedule, running=Running}) ->
 			% Continue until running is empty.
 			% TODO Should refuse to schedule after shutting down.
 			% --> schedule/1 must then return an error shutting_down.
+			io:format("Shutting down~n"),
 			scheduler(State#state{is_shuttingdown=true});
 		{'EXIT', Pid, Reason} ->
 			io:format("Trapped from ~p: ~p~n", [Pid, Reason]),
 			% TODO Keep track of the number of times the process has been rescheduled.
 			% After N tries, just emit a warning and give up.
-			scheduler(State#state{to_schedule=[maps:get(Pid, Running)|ToSchedule], running=maps:remove(Pid, Running)})
+			{Fowarding, RunningUpdated} = maps:take(Pid, Running),
+			io:format("Reschedule ~p~n", [Fowarding]),
+			scheduler(State#state{to_schedule=[Fowarding|ToSchedule], running=RunningUpdated})
 	end.
 
 launch_worker(Forwarding) ->
