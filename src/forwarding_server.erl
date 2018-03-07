@@ -28,6 +28,7 @@
 %%====================================================================
 
 start_link() ->
+	start_scheduler(),
 	gen_server:start_link({local, gateway_forwarding_server}, ?MODULE, [], []).
 
 stop() ->
@@ -56,6 +57,11 @@ handle_cast(_Request, State) ->
 handle_call({forward, {Reference, Payload, User, Device, Forwarders}}, _From, State) ->
 	% Here generate an async cast to itself to actually forward.
 	% TODO Add it to the transmission queue? Add it in state? Or our queue is "message passing"?
+	% Simply use map with Key: tuple {Reference, Forwarder}?
+	% https://erldocs.com/maint/stdlib/maps.html
+	% This would be enough for managing 1000+ forwarding states.
+	% (until we want distribution and persistence -> https://erldocs.com/18.0/mnesia/mnesia.html)
+	% Put the dict in a record. #forwards
 	{
 		reply,
 		gen_server:cast(gateway_forwarding_server, {do_forward, {Reference, Payload, User, Device, Forwarders}}),
@@ -81,9 +87,15 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 					case code:ensure_loaded(Module) of
 						{module, Module} ->
 							% TODO Handle error?
-							ok = Module:forward_one(
-								Reference, Payload, User, Device, Forwarder
-							);
+							% Add to forwarding to run and launch a schedule/0 pass.
+							ok = schedule(#{
+								module => Module,
+								function => forward_one,
+								args => [Reference, Payload, User, Device, Forwarder]
+							});
+							% ok = Module:forward_one(
+							% 	Reference, Payload, User, Device, Forwarder
+							% );
 						{error, _Reason} ->
 							% TODO Or crash?
 							io:format("No module ~p for forwarder ~p: ignore~n", [Module, ForwarderId])
@@ -94,3 +106,68 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 		end,
 		maps:get(forwarders, User)
 	).
+
+%%====================================================================
+%% Gateway Forwarding Scheduler
+%%====================================================================
+% Naive implementation. Should be in its own module.
+
+-record(
+	state,
+	{
+		to_schedule = [] :: list(),
+		running = #{} :: map()
+	}
+).
+
+start_scheduler() ->
+	Pid = spawn_link(fun() -> init_scheduler() end),
+	register(gateway_forwarding_scheduler, Pid).
+
+init_scheduler() ->
+	% TODO Use monitors, not links, as trapping exit signals will give us any
+	% error signal (including from the forwarding server: bidirectionnal).
+	process_flag(trap_exit, true),
+	scheduler(#state{}).
+
+schedule(Forwarding) ->
+	{to_schedule, _} = gateway_forwarding_scheduler ! {to_schedule, Forwarding},
+	ok.
+
+scheduler(State = #state{to_schedule=[ToSchedule|Others], running=Running}) ->
+	% TODO (Add worker pooling) Take from record: worker pool, forwarding to run.
+	% If N worker processes available, and M task to run,
+	% launch min(N,M) forwarding processes. (linking to them)
+	scheduler(State#state{
+		to_schedule=Others,
+		running=maps:put(
+			launch_worker(ToSchedule),
+			ToSchedule,
+			Running
+		)
+	});
+scheduler(State = #state{to_schedule=[], running=Running}) ->
+	% Here receive and recurse again.
+	receive
+		{to_schedule, Forwarding} ->
+			scheduler(State#state{to_schedule=[Forwarding]});
+		{'EXIT', Pid, normal} ->
+			scheduler(State#state{running=maps:remove(Pid, Running)});
+		{'EXIT', Pid, Reason} ->
+			io:format("Trapped from ~p: ~p~n", [Pid, Reason]),
+			scheduler(State#state{to_schedule=[maps:get(Pid, Running)], running=maps:remove(Pid, Running)})
+	end.
+
+launch_worker(Forwarding) ->
+	spawn_link(
+		maps:get(module, Forwarding),
+		maps:get(function, Forwarding),
+		maps:get(args, Forwarding)
+	).
+
+% Trap EXIT from forwarding processes.
+% If normal, remove from forwarding running: ok.
+% If error, remove from forwarding running and put back on top or forwarding to run.
+% Launch schedule/0.
+
+% Terminate: wait all forwarding running finish.
