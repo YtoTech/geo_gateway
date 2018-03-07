@@ -141,6 +141,7 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others],
 	% TODO (Add worker pooling) Take from record: worker pool, forwarding to run.
 	% If N worker processes available, and M task to run,
 	% launch min(N,M) forwarding processes. (linking to them)
+	% May https://github.com/devinus/poolboy or https://github.com/inaka/worker_pool
 	scheduler(State#state{
 		to_schedule=Others,
 		running=maps:put(
