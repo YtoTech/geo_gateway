@@ -183,11 +183,8 @@ forwarding_test_() ->
 		end, ?SAMPLE_CONFIG_DROP_25)}
 	].
 
-% TODO Test for forwarding fault-tolerance:
-% * launch a geo_sensors_gateway application, with one forwarder ;
-% * implement this forwarder as to fail to forward randomly half or 25 % of the payloads ;
-% * implement the receiver as a simple process getting the messages; ---> a gen_server with receive / get_all.
-% * all messages must have been correctly forwarder to the receiver at the end of the test.
+% TODO Create a test for forwarding worker retry strategy.
+% (Ensure it surrender after N times).
 
 % If we need mocking: https://github.com/eproxus/meck
 

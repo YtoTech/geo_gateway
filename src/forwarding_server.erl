@@ -114,6 +114,9 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 % Naive implementation. Should be in its own module.
 % This could be a gen_server? --> with special handler for trapping exits.
 
+% TODO Make MAX_RETRIES configurable.
+-define(MAX_RETRIES, 3).
+
 -record(
 	state,
 	{
@@ -133,8 +136,10 @@ init_scheduler() ->
 	process_flag(trap_exit, true),
 	scheduler(#state{}).
 
-schedule(Forwarding) ->
-	{to_schedule, _} = gateway_forwarding_scheduler ! {to_schedule, Forwarding},
+schedule(ForwarderDescriptor) ->
+	% TODO Get a response (and use a ref to get).
+	% --> Use another gen_server for the scheduler.
+	{to_schedule, _} = gateway_forwarding_scheduler ! {to_schedule, ForwarderDescriptor},
 	ok.
 
 scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others], running=Running}) ->
@@ -145,7 +150,7 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others],
 	scheduler(State#state{
 		to_schedule=Others,
 		running=maps:put(
-			launch_worker(ToSchedule),
+			launch_worker(maps:get(forwarder_desc, ToSchedule)),
 			ToSchedule,
 			Running
 		)
@@ -153,8 +158,8 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others],
 scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=Running}) ->
 	% Here receive and recurse again.
 	receive
-		{to_schedule, Forwarding} ->
-			scheduler(State#state{to_schedule=[Forwarding|ToSchedule]});
+		{to_schedule, ForwarderDescriptor} ->
+			scheduler(State#state{to_schedule=[#{ forwarder_desc => ForwarderDescriptor, retries => 0 }|ToSchedule]});
 		{'EXIT', Pid, normal} ->
 			scheduler(State#state{running=maps:remove(Pid, Running)});
 		{'EXIT', _, shutdown} ->
@@ -165,11 +170,20 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 			scheduler(State#state{is_shuttingdown=true});
 		{'EXIT', Pid, Reason} ->
 			io:format("Trapped from ~p: ~p~n", [Pid, Reason]),
-			% TODO Keep track of the number of times the process has been rescheduled.
+			% Keep track of the number of times the process has been rescheduled.
 			% After N tries, just emit a warning and give up.
-			{Fowarding, RunningUpdated} = maps:take(Pid, Running),
-			io:format("Reschedule ~p~n", [Fowarding]),
-			scheduler(State#state{to_schedule=[Fowarding|ToSchedule], running=RunningUpdated});
+			{FailedTask, RunningUpdated} = maps:take(Pid, Running),
+			ok = case FailedTask of
+				#{ retries := Retries } when Retries > ?MAX_RETRIES ->
+					% TODO --> Emit a signal to a configurable logging facility.
+					% Or make the signal suscrivable. (Let all pass through a geo_gateway
+					% event logger, so we can them dispatch as we wish, add post-hooks, etc.).
+					{error, too_much_tries};
+				_ -> ok
+			end,
+			ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
+			io:format("Reschedule ~p~n", [ToReschedule]),
+			scheduler(State#state{to_schedule=[ToReschedule|ToSchedule], running=RunningUpdated});
 		{Message} ->
 			% TODO Log and just continue?
 			io:format("Received unknown message: ~p", [Message]),
@@ -183,14 +197,14 @@ scheduler(State = #state{is_shuttingdown=true, running=Running}) ->
 			scheduler(State#state{running=maps:remove(Pid, Running)})
 	end.
 
-launch_worker(Forwarding) ->
+launch_worker(ForwarderDescriptor) ->
 	spawn_link(
 		fun() ->
-			ReturnOk = maps:get(return_ok, Forwarding),
+			ReturnOk = maps:get(return_ok, ForwarderDescriptor),
 			ReturnOk = erlang:apply(
-				maps:get(module, Forwarding),
-				maps:get(function, Forwarding),
-				maps:get(args, Forwarding)
+				maps:get(module, ForwarderDescriptor),
+				maps:get(function, ForwarderDescriptor),
+				maps:get(args, ForwarderDescriptor)
 			)
 		end
 	).
