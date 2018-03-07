@@ -9,7 +9,7 @@
 %% API
 -export([forward_one/5]).
 
--spec forward_one(Reference :: binary(), Payload :: map(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
+-spec forward_one(Reference :: binary(), Payloads :: list(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
 forward_one(_Reference, Payloads, User, Device, Forwarder) ->
 	% TODO Do forward in another process.
 	% Basically add to a queue using Erlang messages.
