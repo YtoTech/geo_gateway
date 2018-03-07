@@ -149,10 +149,7 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others],
 			Running
 		)
 	});
-scheduler(State = #state{is_shuttingdown=true, running=#{}}) ->
-	io:format("Shutting down ok~n"),
-	exit(normal);
-scheduler(State = #state{to_schedule=ToSchedule, running=Running}) ->
+scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=Running}) ->
 	% Here receive and recurse again.
 	receive
 		{to_schedule, Forwarding} ->
@@ -171,7 +168,18 @@ scheduler(State = #state{to_schedule=ToSchedule, running=Running}) ->
 			% After N tries, just emit a warning and give up.
 			{Fowarding, RunningUpdated} = maps:take(Pid, Running),
 			io:format("Reschedule ~p~n", [Fowarding]),
-			scheduler(State#state{to_schedule=[Fowarding|ToSchedule], running=RunningUpdated})
+			scheduler(State#state{to_schedule=[Fowarding|ToSchedule], running=RunningUpdated});
+		{Message} ->
+			% TODO Log and just continue?
+			io:format("Received unknown message: ~p", [Message]),
+			{error, {unexpected_message, Message}}
+	end;
+scheduler(#state{is_shuttingdown=true, running=Running}) when Running =:= #{} ->
+	io:format("Shutting down ok~n");
+scheduler(State = #state{is_shuttingdown=true, running=Running}) ->
+	receive
+		{'EXIT', Pid, normal} ->
+			scheduler(State#state{running=maps:remove(Pid, Running)})
 	end.
 
 launch_worker(Forwarding) ->
