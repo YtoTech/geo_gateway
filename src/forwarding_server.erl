@@ -91,7 +91,8 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 							ok = schedule(#{
 								module => Module,
 								function => forward_one,
-								args => [Reference, Payload, User, Device, Forwarder]
+								args => [Reference, Payload, User, Device, Forwarder],
+								return_ok => ok
 							});
 							% ok = Module:forward_one(
 							% 	Reference, Payload, User, Device, Forwarder
@@ -176,7 +177,8 @@ scheduler(State = #state{to_schedule=ToSchedule, running=Running}) ->
 launch_worker(Forwarding) ->
 	spawn_link(
 		fun() ->
-			ok = erlang:apply(
+			ReturnOk = maps:get(return_ok, Forwarding),
+			ReturnOk = erlang:apply(
 				maps:get(module, Forwarding),
 				maps:get(function, Forwarding),
 				maps:get(args, Forwarding)
