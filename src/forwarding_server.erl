@@ -139,8 +139,13 @@ init_scheduler() ->
 schedule(ForwarderDescriptor) ->
 	% TODO Get a response (and use a ref to get).
 	% --> Use another gen_server for the scheduler.
-	{to_schedule, _} = gateway_forwarding_scheduler ! {to_schedule, ForwarderDescriptor},
-	ok.
+	Ref = make_ref(),
+	gateway_forwarding_scheduler ! {to_schedule, self(), Ref, ForwarderDescriptor},
+	receive
+		{ok, Ref} -> ok
+	after 500
+		-> {error, schedule_timeout}
+	end.
 
 scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others], running=Running}) ->
 	% TODO (Add worker pooling) Take from record: worker pool, forwarding to run.
@@ -159,18 +164,28 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others],
 scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=Running}) ->
 	% Here receive and recurse again.
 	receive
-		{to_schedule, ForwarderDescriptor} ->
+		{to_schedule, From, Ref, ForwarderDescriptor} ->
+			From ! {ok, Ref},
 			scheduler(State#state{to_schedule=[#{ forwarder_desc => ForwarderDescriptor, retries => 0 }|ToSchedule]});
 		{'EXIT', Pid, normal} ->
 			scheduler(State#state{running=maps:remove(Pid, Running)});
-		{'EXIT', _, shutdown} ->
+		shutdown ->
+			io:format("Shutting down~n"),
+			scheduler(State#state{is_shuttingdown=true});
+		{'EXIT', Pid, shutdown} ->
 			% Continue until running is empty.
 			% TODO Should refuse to schedule after shutting down.
 			% --> schedule/1 must then return an error shutting_down.
-			io:format("Shutting down~n"),
+			io:format("~p is shutting down too~n", [Pid]),
 			scheduler(State#state{is_shuttingdown=true});
 		{'EXIT', Pid, Reason} ->
-			io:format("Trapped from ~p: ~p~n", [Pid, Reason]),
+			case maps:is_key(Pid, Running) of
+				false ->
+					io:format("Received EXIT from unknown worker: ~p", [Pid, Reason]),
+					ok;
+				_ -> ok
+			end,
+			% io:format("Trapped from ~p: ~p~n", [Pid, Reason]),
 			% Keep track of the number of times the process has been rescheduled.
 			% After N tries, just emit a warning and give up.
 			{FailedTask, RunningUpdated} = maps:take(Pid, Running),
@@ -184,9 +199,10 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 			end,
 			% TODO Reschedule after a (borned random) delay to avoid spamming loop
 			% just after a transient error occured. Use a back-off exponential delay
-			% algorithm similar to TCP-one
+			% algorithm similar to TCP-one.
+			% We can use https://erldocs.com/18.0/stdlib/timer.html#send_after/2 for that purpose.
 			ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
-			io:format("Reschedule ~p~n", [ToReschedule]),
+			% io:format("Reschedule ~p~n", [ToReschedule]),
 			scheduler(State#state{to_schedule=[ToReschedule|ToSchedule], running=RunningUpdated});
 		{Message} ->
 			% TODO Log and just continue?

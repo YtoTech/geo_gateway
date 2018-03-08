@@ -168,7 +168,7 @@ forwarding_test_() ->
 				lists:seq(1, 100)
 			),
 			% TODO Does we need to wait forwarding process has righly terminated?
-			timer:sleep(100), % The very ugly way.
+			% timer:sleep(100), % The very ugly way.
 			% TODO handle correct shutdown in gateway, else we will loose payloads
 			% during shutdown.
 			application:stop(geo_sensors_gateway),
@@ -181,6 +181,8 @@ forwarding_test_() ->
 				ReceivedPayloads
 			)
 		end, ?SAMPLE_CONFIG_DROP_25)}
+		% TODO Test for correct termination with 40 or 50 drop-rate.
+		% TODO Test for abort with 99 or 100 drop-rate.
 	].
 
 % TODO Create a test for forwarding worker retry strategy.
