@@ -147,6 +147,7 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others],
 	% If N worker processes available, and M task to run,
 	% launch min(N,M) forwarding processes. (linking to them)
 	% May https://github.com/devinus/poolboy or https://github.com/inaka/worker_pool
+	% TODO Add
 	scheduler(State#state{
 		to_schedule=Others,
 		running=maps:put(
@@ -181,6 +182,9 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 					{error, too_much_tries};
 				_ -> ok
 			end,
+			% TODO Reschedule after a (borned random) delay to avoid spamming loop
+			% just after a transient error occured. Use a back-off exponential delay
+			% algorithm similar to TCP-one
 			ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
 			io:format("Reschedule ~p~n", [ToReschedule]),
 			scheduler(State#state{to_schedule=[ToReschedule|ToSchedule], running=RunningUpdated});
