@@ -189,28 +189,27 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 			% Keep track of the number of times the process has been rescheduled.
 			% After N tries, just emit a warning and give up.
 			{FailedTask, RunningUpdated} = maps:take(Pid, Running),
-			ok = case FailedTask of
+			case FailedTask of
 				#{ retries := Retries } when Retries > ?MAX_RETRIES ->
-					% TODO --> Emit a signal to a configurable logging facility.
-					% Or make the signal suscrivable. (Let all pass through a geo_gateway
-					% event logger, so we can them dispatch as we wish, add post-hooks, etc.).
-					{error, too_much_tries};
-				_ -> ok
-			end,
-			% TODO Reschedule after a (borned random) delay to avoid spamming loop
-			% just after a transient error occured. Use a back-off exponential delay
-			% algorithm similar to TCP-one.
-			% We can use https://erldocs.com/18.0/stdlib/timer.html#send_after/2 for that purpose.
-			ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
-			lager:debug("Reschedule ~p", [ToReschedule]),
-			lager:info(
-				"Forwarding task ~s reschedule after ~p tries",
-				[
+					% TODO Emit a signal and make it suscrivable?
+					% (to store the payload in a special file/facility)
+					lager:error("Abort payload forwarding after ~p tries. Task: ~p. Reason: ~p", [Retries, FailedTask, Reason]),
+					scheduler(State#state{running=RunningUpdated});
+				_ ->
+				% TODO Reschedule after a (borned random) delay to avoid spamming loop
+				% just after a transient error occured. Use a back-off exponential delay
+				% algorithm similar to TCP-one.
+				% We can use https://erldocs.com/18.0/stdlib/timer.html#send_after/2 for that purpose.
+				ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
+				lager:debug("Reschedule ~p", [ToReschedule]),
+				lager:info(
+				"Forwarding task ~s reschedule after ~p tries", [
 					nested:get([forwarder_desc, module], ToReschedule),
 					maps:get(retries, ToReschedule)
-				]
-			),
-			scheduler(State#state{to_schedule=[ToReschedule|ToSchedule], running=RunningUpdated});
+				]),
+				% TODO What about reschedule tasks during shut down?
+				scheduler(State#state{to_schedule=[ToReschedule|ToSchedule], running=RunningUpdated})
+			end;
 		{Message} ->
 			lager:error("Received unknown message: ~p", [Message]),
 			scheduler(State)
