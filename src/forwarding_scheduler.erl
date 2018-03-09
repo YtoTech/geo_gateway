@@ -30,7 +30,8 @@
 	{
 		to_schedule = [] :: list(),
 		running = #{} :: map(),
-		is_shuttingdown = false :: boolean()
+		is_shuttingdown = false :: boolean(),
+		rescheduled = #{} :: map()
 	}
 ).
 
@@ -80,9 +81,10 @@ scheduler(State = #state{to_schedule=[ToSchedule|Others], running=Running}) ->
 			Running
 		)
 	});
-scheduler(#state{is_shuttingdown=true, to_schedule=[], running=Running}) when Running =:= #{} ->
-	lager:info("Shutting down ok");
-scheduler(State = #state{is_shuttingdown=IsShuttingdown, to_schedule=ToSchedule, running=Running}) ->
+scheduler(#state{is_shuttingdown=true, to_schedule=[], running=Running, rescheduled=Rescheduled}) when Running =:= #{}, Rescheduled =:= #{} ->
+	lager:info("Shutting down ok"),
+	ok;
+scheduler(State = #state{is_shuttingdown=IsShuttingdown, to_schedule=ToSchedule, running=Running, rescheduled=Rescheduled}) ->
 	% Here receive events and recurse again.
 	receive
 		{to_schedule, From, Ref, ForwarderDescriptor} ->
@@ -94,9 +96,9 @@ scheduler(State = #state{is_shuttingdown=IsShuttingdown, to_schedule=ToSchedule,
 					From ! {error, is_shuttingdown},
 					scheduler(State)
 			end;
-		{to_reschedule, Pid, ToReschedule} when Pid =:= self() ->
+		{to_reschedule, Pid, Ref, ToReschedule} when Pid =:= self() ->
 			lager:info("Reschedule timeout triggered for ~s", [nested:get([forwarder_desc, module], ToReschedule)]),
-			scheduler(State#state{to_schedule=[ToReschedule|ToSchedule]});
+			scheduler(State#state{to_schedule=[ToReschedule|ToSchedule], rescheduled=maps:remove(Ref, Rescheduled)});
 		{'EXIT', Pid, normal} ->
 			scheduler(State#state{running=maps:remove(Pid, Running)});
 		shutdown ->
@@ -147,7 +149,7 @@ launch_worker(ForwarderDescriptor) ->
 		end
 	).
 
-reschedule(State, FailedTask, RunningUpdated) ->
+reschedule(State = #state{rescheduled=Rescheduled}, FailedTask, RunningUpdated) ->
 	% TODO What about reschedule tasks during shut down?
 	ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
 	lager:debug("Reschedule ~p", [ToReschedule]),
@@ -158,9 +160,10 @@ reschedule(State, FailedTask, RunningUpdated) ->
 			Delay/1000,
 			maps:get(retries, ToReschedule)
 	]),
-	% TODO Keep track of reschedule task timers in state?
-	{ok, _TRef} = timer:send_after(Delay, {to_reschedule, self(), ToReschedule}),
-	scheduler(State#state{running=RunningUpdated}).
+	Ref = make_ref(),
+	{ok, TRef} = timer:send_after(Delay, {to_reschedule, self(), Ref, ToReschedule}),
+	RescheduledUpdated = maps:put(Ref, #{ timer => TRef, task => ToReschedule }, Rescheduled),
+	scheduler(State#state{running=RunningUpdated, rescheduled=RescheduledUpdated}).
 
 %%====================================================================
 %% Private util functions.

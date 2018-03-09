@@ -167,10 +167,6 @@ forwarding_test_() ->
 				end,
 				lists:seq(1, 100)
 			),
-			% TODO Does we need to wait forwarding process has righly terminated?
-			% timer:sleep(1000), % The very ugly way.
-			% TODO handle correct shutdown in gateway, else we will loose payloads
-			% during shutdown.
 			application:stop(geo_sensors_gateway),
 			ReceivedPayloads = test_receiver:get_received_payloads(),
 			?assertEqual(100, length(ReceivedPayloads)),
@@ -181,12 +177,13 @@ forwarding_test_() ->
 				ReceivedPayloads
 			)
 		end, ?SAMPLE_CONFIG_DROP_25)}
-		% TODO Test for correct termination with 40 or 50 drop-rate.
-		% TODO Test for abort with 99 or 100 drop-rate.
 	].
 
+% TODO Test for correct termination with 40 or 50 drop-rate.
+% TODO Test for abort with 99 or 100 drop-rate --> timeout.
+% Will need mocking or configuring the timeout delay to trigger it?
 % TODO Create a test for forwarding worker retry strategy.
-% (Ensure it surrender after N times).
+% (Ensure it reschedule and surrender after N times).
 
 % If we need mocking: https://github.com/eproxus/meck
 
