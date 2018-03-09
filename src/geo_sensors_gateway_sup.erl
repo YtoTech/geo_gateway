@@ -79,8 +79,16 @@ init([]) ->
 		worker,
 		[forwarding_server]
 	},
-	% TODO Here we want the sceduler with a timeout greater than the forwarding_server.
-	Children = [SmtpServer, ForwardingServer],
+	% Here we want the sceduler with a timeout greater than the forwarding_server.
+	ForwardingScheduler = {
+		forwarding_scheduler,
+		{forwarding_scheduler, start_scheduler, []},
+		permanent,
+		240000,
+		worker,
+		[forwarding_scheduler]
+	},
+	Children = [SmtpServer, ForwardingServer, ForwardingScheduler],
 	RestartStrategy = {one_for_one, 2, 5},
 	{ok, { RestartStrategy, Children} }.
 
