@@ -1,5 +1,6 @@
 {"1.1.0",
-[{<<"certifi">>,{pkg,<<"certifi">>,<<"2.0.0">>},1},
+[{<<"backoff">>,{pkg,<<"backoff">>,<<"1.1.4">>},0},
+ {<<"certifi">>,{pkg,<<"certifi">>,<<"2.0.0">>},1},
  {<<"eiconv">>,{pkg,<<"eiconv">>,<<"1.0.0-alpha1">>},0},
  {<<"gen_smtp">>,
   {git,"git://github.com/YtoTech/gen_smtp.git",
@@ -18,6 +19,7 @@
  {<<"unicode_util_compat">>,{pkg,<<"unicode_util_compat">>,<<"0.3.1">>},2}]}.
 [
 {pkg_hash,[
+ {<<"backoff">>, <<"493BD97C41AF4FCA12030EA399790AD4B59523AD0A440AC3C72B005225E74ADC">>},
  {<<"certifi">>, <<"A0C0E475107135F76B8C1D5BC7EFB33CD3815CB3CF3DEA7AEFDD174DABEAD064">>},
  {<<"eiconv">>, <<"547DA4B8ABB5C85EE8E47D7B9EBFCA77016B03F2869DEDC91A0F0177AB67EBC4">>},
  {<<"goldrush">>, <<"F06E5D5F1277DA5C413E84D5A2924174182FB108DABB39D5EC548B27424CD106">>},

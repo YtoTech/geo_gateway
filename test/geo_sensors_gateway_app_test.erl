@@ -147,6 +147,7 @@ load_configuration_test_() ->
 ).
 
 forwarding_test_() ->
+	{timeout, 10,
 	[
 		{"We can forward to a simple test box receiver",
 		?setup_config(fun() ->
@@ -177,7 +178,7 @@ forwarding_test_() ->
 				ReceivedPayloads
 			)
 		end, ?SAMPLE_CONFIG_DROP_25)}
-	].
+	]}.
 
 % TODO Test for correct termination with 40 or 50 drop-rate.
 % TODO Test for abort with 99 or 100 drop-rate --> timeout.
