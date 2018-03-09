@@ -115,6 +115,7 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 
 % TODO Make MAX_RETRIES configurable.
 -define(MAX_RETRIES, 3).
+-define(RETRY_DELAY, 500).
 
 -record(
 	state,
@@ -166,6 +167,9 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 		{to_schedule, From, Ref, ForwarderDescriptor} ->
 			From ! {ok, Ref},
 			scheduler(State#state{to_schedule=[#{ forwarder_desc => ForwarderDescriptor, retries => 0 }|ToSchedule]});
+		{to_reschedule, Pid, ToReschedule} when Pid =:= self() ->
+			lager:info("Reschedule timeout triggered for ~s", [nested:get([forwarder_desc, module], ToReschedule)]),
+			scheduler(State#state{to_schedule=[ToReschedule|ToSchedule]});
 		{'EXIT', Pid, normal} ->
 			scheduler(State#state{running=maps:remove(Pid, Running)});
 		shutdown ->
@@ -173,6 +177,7 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 			lager:info("Shutting down"),
 			scheduler(State#state{is_shuttingdown=true});
 		{'EXIT', Pid, shutdown} ->
+			% Terminate: wait all forwarding running finish.
 			% Continue until running is empty.
 			% TODO Should refuse to schedule after shutting down.
 			% --> schedule/1 must then return an error shutting_down.
@@ -196,19 +201,7 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 					lager:error("Abort payload forwarding after ~p tries. Task: ~p. Reason: ~p", [Retries, FailedTask, Reason]),
 					scheduler(State#state{running=RunningUpdated});
 				_ ->
-				% TODO Reschedule after a (borned random) delay to avoid spamming loop
-				% just after a transient error occured. Use a back-off exponential delay
-				% algorithm similar to TCP-one.
-				% We can use https://erldocs.com/18.0/stdlib/timer.html#send_after/2 for that purpose.
-				ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
-				lager:debug("Reschedule ~p", [ToReschedule]),
-				lager:info(
-				"Forwarding task ~s reschedule after ~p tries", [
-					nested:get([forwarder_desc, module], ToReschedule),
-					maps:get(retries, ToReschedule)
-				]),
-				% TODO What about reschedule tasks during shut down?
-				scheduler(State#state{to_schedule=[ToReschedule|ToSchedule], running=RunningUpdated})
+					reschedule(State, FailedTask, RunningUpdated)
 			end;
 		{Message} ->
 			lager:error("Received unknown message: ~p", [Message]),
@@ -218,6 +211,7 @@ scheduler(#state{is_shuttingdown=true, running=Running}) when Running =:= #{} ->
 	lager:info("Shutting down ok");
 scheduler(State = #state{is_shuttingdown=true, running=Running}) ->
 	receive
+		% TODO What happend to reschedule taks during shutdown?
 		{'EXIT', Pid, normal} ->
 			scheduler(State#state{running=maps:remove(Pid, Running)})
 	end.
@@ -234,9 +228,25 @@ launch_worker(ForwarderDescriptor) ->
 		end
 	).
 
-% Trap EXIT from forwarding processes.
-% If normal, remove from forwarding running: ok.
-% If error, remove from forwarding running and put back on top or forwarding to run.
-% Launch schedule/0.
+reschedule(State = #state{is_shuttingdown=false}, FailedTask, RunningUpdated) ->
+	% TODO What about reschedule tasks during shut down?
+	ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
+	lager:debug("Reschedule ~p", [ToReschedule]),
+	Delay = reschedule_compute_delay(ToReschedule),
+	lager:info(
+		"Forwarding task ~s reschedule in ~p s after ~p tries", [
+			nested:get([forwarder_desc, module], ToReschedule),
+			Delay/1000,
+			maps:get(retries, ToReschedule)
+	]),
+	% TODO Keep track of reschedule task timers in state?
+	{ok, _TRef} = timer:send_after(Delay, {to_reschedule, self(), ToReschedule}),
+	scheduler(State#state{running=RunningUpdated}).
 
-% Terminate: wait all forwarding running finish.
+reschedule_compute_delay(ToReschedule) ->
+	% TODO Reschedule after a (borned random) delay to avoid spamming loop
+	% just after a transient error occured. Use a back-off exponential delay
+	% algorithm similar to TCP-one.
+	% We can use https://erldocs.com/18.0/stdlib/timer.html#send_after/2 for that purpose.
+	% TODO Also make the delay a bit random.
+	maps:get(retries, ToReschedule) * ?RETRY_DELAY.
