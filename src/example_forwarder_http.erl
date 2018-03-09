@@ -38,13 +38,13 @@ forward_one(_Reference, Payloads, User, Device, Forwarder) ->
 	%
 	% 	"{ \"text\": \"New sensor message\nUser: ~s\nDevice: ~s\n\n~s\" }"
 	% },
-	% io:format("Json: ~p~n", [Json]),
+	% lager:debug("Json: ~p", [Json]),
 	% PayloadHttp = jiffy:encode(Json),
 	PayloadHttp = io_lib:format(
 		nested:get([parameters, template], Forwarder),
 		[erlang_to_json_string(User), erlang_to_json_string(Device), erlang_to_json_string(Payloads)]
 	),
-	io:format("HTTP payload to send (~s:~s) trough Hackney: ~s~n", [Method, Url, PayloadHttp]),
+	lager:info("HTTP payload to send (~s:~s): ~s", [Method, Url, PayloadHttp]),
 	{ok, StatusCode, _, Client} = hackney:request(
 	binary_to_atom(Method, utf8),
 	Url,
@@ -55,12 +55,12 @@ forward_one(_Reference, Payloads, User, Device, Forwarder) ->
 	case StatusCode of
 		% TODO 20X
 		200 ->
-			io:format("Sent!~n"),
+			lager:info("Sent!"),
 			ok;
 		_ ->
 			{ok, Body} = hackney:body(Client),
-			io:format("Body: ~p~n", [Body]),
-			io:format("StatusCode: ~p~n", [StatusCode]),
+			lager:warning("Body: ~p", [Body]),
+			lager:warning("StatusCode: ~p", [StatusCode]),
 			error
 	end.
 

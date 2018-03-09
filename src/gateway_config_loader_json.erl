@@ -28,13 +28,13 @@ load_config() ->
 	% The users are indexed by username, because we encounter
 	% first the AUTH in the process of receiving a mail.
 	{ok, ConfigFilePath} = application:get_env(geo_sensors_gateway, json_configuration_file),
-	% io:format("Using configuration file ~s~n", [ConfigFilePath]),
+	lager:info("Using configuration file ~s", [ConfigFilePath]),
 	ConfigurationFileContent = case file:read_file(ConfigFilePath) of
 		{ok, CFC} ->
 			CFC;
 		_ ->
-			io:format("Failed to open ~s.~nYou can create a
-			configuration using example configuration.json.sample.~n", [ConfigFilePath]),
+			lager:warning("Failed to open \"~s\". You can create a
+			configuration from the example configuration.json.sample.", [ConfigFilePath]),
 			erlang:error(no_configuration)
 	end,
 	ConfigurationAsJson = jiffy:decode(
@@ -85,7 +85,7 @@ load_config() ->
 		end,
 		maps:get(<<"users">>, ConfigurationAsJson, {})
 	),
-	% io:format("Users ~p ~n", [Users]),
+	lager:debug("Users ~p", [Users]),
 	Devices = maps:map(
 		fun(_DeviceId, Device) ->
 			#{
@@ -97,7 +97,7 @@ load_config() ->
 		end,
 		maps:get(<<"devices">>, ConfigurationAsJson, {})
 	),
-	% io:format("Devices ~p ~n", [Devices]),
+	lager:debug("Devices ~p", [Devices]),
 	Forwarders = maps:map(
 		fun(_ForwarderId, Forwarder) ->
 			#{
@@ -107,9 +107,9 @@ load_config() ->
 		end,
 		maps:get(<<"forwarders">>, ConfigurationAsJson, {})
 	),
-	% io:format("Forwarders ~p ~n", [Forwarders]),
+	lager:debug("Forwarders ~p", [Forwarders]),
 	SmtpGateway = maps:fold(MapKeyToAtom, #{}, maps:get(<<"smtp_gateway">>, ConfigurationAsJson, #{})),
-	% io:format("SmtpGateway ~p ~n", [SmtpGateway]),
+	lager:debug("SmtpGateway ~p", [SmtpGateway]),
 	#{
 		users => Users,
 		devices => Devices,

@@ -81,9 +81,9 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 				{ok, Forwarder} ->
 					% We may use gproc:send for notifying the registered forwarders.
 					% That may be totally overkill. https://github.com/uwiger/gproc#use-case-pubsub-patterns
-					% io:format("Forwarder ~p~n", [Forwarder]),
+					lager:debug("Forwarder ~p", [Forwarder]),
 					Module = binary_to_atom(maps:get(module, Forwarder), unicode),
-					% io:format("Forwarder ~s~n", [Module]),
+					lager:info("Forward with module ~s", [Module]),
 					case code:ensure_loaded(Module) of
 						{module, Module} ->
 							% TODO Handle error?
@@ -98,11 +98,10 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 							% 	Reference, Payload, User, Device, Forwarder
 							% );
 						{error, _Reason} ->
-							% TODO Or crash?
-							io:format("No module ~p for forwarder ~p: ignore~n", [Module, ForwarderId])
+							lager:error("No module ~p for forwarder ~p: ignore", [Module, ForwarderId])
 					end;
 				_ ->
-					io:format("No forwarder ~p: ignore~n", [ForwarderId])
+					lager:warning("No forwarder ~p: ignore", [ForwarderId])
 			end
 		end,
 		maps:get(forwarders, User)
@@ -170,22 +169,23 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 		{'EXIT', Pid, normal} ->
 			scheduler(State#state{running=maps:remove(Pid, Running)});
 		shutdown ->
-			io:format("Shutting down~n"),
+			% TODO This is not triggered.
+			lager:info("Shutting down"),
 			scheduler(State#state{is_shuttingdown=true});
 		{'EXIT', Pid, shutdown} ->
 			% Continue until running is empty.
 			% TODO Should refuse to schedule after shutting down.
 			% --> schedule/1 must then return an error shutting_down.
-			io:format("~p is shutting down too~n", [Pid]),
+			lager:info("~p is shutting down too", [Pid]),
 			scheduler(State#state{is_shuttingdown=true});
 		{'EXIT', Pid, Reason} ->
 			case maps:is_key(Pid, Running) of
 				false ->
-					io:format("Received EXIT from unknown worker: ~p. Reader: ~p", [Pid, Reason]),
+					lager:warning("Received EXIT from unknown worker: ~p. Reader: ~p", [Pid, Reason]),
 					ok;
 				_ -> ok
 			end,
-			% io:format("Trapped from ~p: ~p~n", [Pid, Reason]),
+			lager:debug("Trapped from ~p: ~p", [Pid, Reason]),
 			% Keep track of the number of times the process has been rescheduled.
 			% After N tries, just emit a warning and give up.
 			{FailedTask, RunningUpdated} = maps:take(Pid, Running),
@@ -202,15 +202,21 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 			% algorithm similar to TCP-one.
 			% We can use https://erldocs.com/18.0/stdlib/timer.html#send_after/2 for that purpose.
 			ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
-			% io:format("Reschedule ~p~n", [ToReschedule]),
+			lager:debug("Reschedule ~p", [ToReschedule]),
+			lager:info(
+				"Forwarding task ~s reschedule after ~p tries",
+				[
+					nested:get([forwarder_desc, module], ToReschedule),
+					maps:get(retries, ToReschedule)
+				]
+			),
 			scheduler(State#state{to_schedule=[ToReschedule|ToSchedule], running=RunningUpdated});
 		{Message} ->
-			% TODO Log and just continue?
-			io:format("Received unknown message: ~p", [Message]),
-			{error, {unexpected_message, Message}}
+			lager:error("Received unknown message: ~p", [Message]),
+			scheduler(State)
 	end;
 scheduler(#state{is_shuttingdown=true, running=Running}) when Running =:= #{} ->
-	io:format("Shutting down ok~n");
+	lager:info("Shutting down ok");
 scheduler(State = #state{is_shuttingdown=true, running=Running}) ->
 	receive
 		{'EXIT', Pid, normal} ->

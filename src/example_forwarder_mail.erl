@@ -18,7 +18,7 @@ forward_one(_Reference, Payloads, _User, _Device, Forwarder) ->
 	From = nested:get([parameters, from], Forwarder, "geo-sensors-gateway@ytotech.com"),
 	lists:foreach(
 		fun(Recipient) ->
-			io:format("Forward to ~s~n", [Recipient]),
+			lager:info("Forward to ~s", [Recipient]),
 			gen_smtp_client:send(
 				{
 					From,

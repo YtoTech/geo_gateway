@@ -32,15 +32,15 @@
 %% session. You can also return `{stop, Reason, Message}' where the session will exit with Reason
 %% and send Message to the client.
 -spec init(Hostname :: binary(), SessionCount :: non_neg_integer(), Address :: tuple(), Options :: list()) -> {'ok', string(), #state{}} | {'stop', any(), string()}.
-init(Hostname, SessionCount, _Address, Options) ->
-	% io:format("peer: ~p~n", [Address]),
+init(Hostname, SessionCount, Address, Options) ->
+	lager:debug("peer: ~p", [Address]),
 	case SessionCount > 20 of
 		false ->
 			Banner = [Hostname, " ESMTP YtoTech_GeoSensors_Gateway_SMTP"],
 			State = #state{options = Options},
 			{ok, Banner, State};
 		true ->
-			io:format("Connection limit exceeded~n"),
+			lager:warning("Connection limit exceeded"),
 			{stop, normal, ["421 ", Hostname, " is too busy to accept mail right now"]}
 	end.
 
@@ -58,8 +58,8 @@ handle_HELO(<<"invalid">>, State) ->
 	{error, "554 invalid hostname", State};
 handle_HELO(<<"trusted_host">>, State) ->
 	{ok, State}; %% no size limit because we trust them.
-handle_HELO(_Hostname, State) ->
-	% io:format("HELO from ~s~n", [Hostname]),
+handle_HELO(Hostname, State) ->
+	lager:debug("HELO from ~s", [Hostname]),
 	{ok, 655360, State}. % 640kb of HELO should be enough for anyone.
 	%If {ok, State} was returned here, we'd use the default 10mb limit
 
@@ -74,10 +74,10 @@ handle_HELO(_Hostname, State) ->
 handle_EHLO(<<"invalid">>, _Extensions, State) ->
 	% contrived example
 	{error, "554 invalid hostname", State};
-handle_EHLO(_Hostname, Extensions, State) ->
-	% io:format("EHLO from ~s~n", [Hostname]),
+handle_EHLO(Hostname, Extensions, State) ->
+	lager:debug("EHLO from ~s", [Hostname]),
 	% You can advertise additional extensions, or remove some defaults
-    % io:format("auth is ~w~n", [proplists:get_value(auth, State#state.options, false)]),
+    lager:debug("auth is ~w", [proplists:get_value(auth, State#state.options, false)]),
 	MyExtensions = case proplists:get_value(auth, State#state.options, false) of
 		true ->
 			% auth is enabled, so advertise it.
@@ -97,7 +97,7 @@ handle_MAIL(<<"badguy@blacklist.com">>, State) ->
 	{error, "552 Not Managed", State};
 handle_MAIL(From, State) ->
 	% Filter the accepted mails. TODO Do we really need to reject using FROM?
-	% io:format("Mail from ~s~n", [From]),
+	lager:debug("Mail from ~s", [From]),
 	case maps:get(email, State#state.user) of
 		From ->
 			{ok, State};
@@ -108,36 +108,36 @@ handle_MAIL(From, State) ->
 %% @doc Handle an extension to the MAIL verb. Return either `{ok, State}' or `error' to reject
 %% the option.
 handle_MAIL_extension(Extension, _State) ->
-	io:format("Unknown MAIL FROM extension ~s~n", [Extension]),
+	lager:warning("Unknown MAIL FROM extension ~s", [Extension]),
 	error.
 
 handle_RCPT(_To, State) ->
 	{ok, State}.
 
 handle_RCPT_extension(Extension, _State) ->
-	io:format("Unknown RCPT TO extension ~s~n", [Extension]),
+	lager:warning("Unknown RCPT TO extension ~s", [Extension]),
 	error.
 
 -spec handle_DATA(From :: binary(), To :: [binary(),...], Data :: binary(), State :: #state{}) -> {'ok', string(), #state{}} | {'error', string(), #state{}}.
 handle_DATA(_From, _To, <<>>, State) ->
 	{error, "552 Message too small", State};
-handle_DATA(_From, _To, Data, State) ->
+handle_DATA(From, To, Data, State) ->
 	% Some kind of unique id.
 	Reference = erlang:iolist_to_binary(lists:flatten([
 		io_lib:format("~2.16.0b", [X]) || <<X>> <= erlang:md5(term_to_binary(unique_id()))
 	])),
 	% We do not relay emails but process them.
-	% io:format("message from ~s to ~p queued as ~s, body length ~p~n", [From, To, Reference, byte_size(Data)]),
+	lager:debug("message from ~s to ~p queued as ~s, body length ~p", [From, To, Reference, byte_size(Data)]),
 	% We always try to parse emails.
 	% TODO Refactorize and simplify: this is messy and we get lost here.
 	% --> Create functions for decoding, parsing and/or forwarding?
 	DumpsRawMessage = try mimemail:decode(Data) of
-		{_Type, _SubType, _Headers, _Properties, Body} ->
-			% io:format("From: ~s~nTo: ~s~n", [From, To]),
-			% io:format("Headers: ~p~n", [Headers]),
-			% io:format("Body: ~s~n", [Body]),
+		{_Type, _SubType, Headers, _Properties, Body} ->
+			lager:debug("From: ~s To: ~s", [From, To]),
+			lager:debug("Headers: ~p", [Headers]),
+			lager:debug("Body: ~s", [Body]),
 			User = State#state.user,
-			% io:format("User: ~p~n", [User]),
+			lager:debug("User: ~p", [User]),
 			% Now parse the actual sensor payload.
 			% TODO Make this customizable.
 			case device_payload_parser_example:parse(
@@ -147,7 +147,7 @@ handle_DATA(_From, _To, Data, State) ->
 				proplists:get_value(devices, State#state.options, #{})
 			) of
 				{ok, Payload, Device} ->
-					% io:format("Parsed payload: ~p~n", [Payload]),
+					lager:debug("Parsed payload: ~p", [Payload]),
 					% When payload extracted from the mail,
 					% give it to the forwarder module that will handle its
 					% transmission.
@@ -163,21 +163,20 @@ handle_DATA(_From, _To, Data, State) ->
 				{error, Reason} ->
 					% TODO Always dumps on error? (Have another parameter than dumps_incoming)
 					% For e.g. dumps_on_parsing_error
-					io:format("Error while parsing device payload: ~s~n", [Reason])
+					lager:error("Error while parsing device payload: ~s", [Reason])
 			end,
 			% If dumping is enabled on the user, dump all messages, whatever the outcome.
 			% ---> Will be usefull for debugging. (And make the server iso with the Python one)
-			% io:format("dumps_incoming: ~p~n", [User]),
 			maps:get(dumps_incoming, User, false)
 	catch
 		What:Why ->
-			io:format("Message decode FAILED with ~p:~p~n", [What, Why]),
+			lager:error("Message decode FAILED with ~p:~p", [What, Why]),
 			proplists:get_value(dumps_incoming, State#state.options, false)
 	end,
 	% Function to dump messages somewhere for analysis.
 	DumpToFile = fun(Path, Name) ->
 		File = erlang:iolist_to_binary([Path, Name, <<".eml">>]),
-		% io:format("Dump incoming message to ~s~n", [File]),
+		lager:debug("Dump incoming message to ~s", [File]),
 		case filelib:ensure_dir(File) of
 			ok ->
 				file:write_file(File, Data);
@@ -230,7 +229,7 @@ handle_AUTH_user('cram-md5', {Digest, Seed}, UserPassword, State) ->
 			error
 	end;
 handle_AUTH_user(Type, Password, _UserPassword, _State) ->
-	io:format("handle_AUTH error ~w ~w ~n", [Type, Password]),
+	lager:warning("handle_AUTH error ~w ~w", [Type, Password]),
 	error.
 
 handle_info(_Info, State) ->

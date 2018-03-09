@@ -23,17 +23,17 @@ parse(_Reference, Body, User, Devices) ->
 					{ok, ParsedPayload} = parse_genloc(Body, User, Device),
 					{ok, ParsedPayload, Device};
 				_ ->
-					io:format("No parser for device ~p: ignore~n", [Device]),
+					lager:warning("No parser for device ~p: ignore", [Device]),
 					{error, no_device_parser}
 			end;
 		_ ->
-			io:format("No device for user: ignore~n"),
+			lager:warning("No device for user: ignore"),
 			{error, no_device}
 	end.
 
 -spec parse_genloc(Body :: binary(), User :: map(), Device :: map()) -> {'ok', list()}.
 parse_genloc(Body, _User, _Device) ->
-	% io:format("~p~n", [Body]),
+	lager:debug("~p", [Body]),
 	% Prepare input: split by lines and trim them.
 	Lines = string:split(Body, <<"\n">>, all),
 	TrimedLines = lists:map(fun (Line) -> string:trim(Line) end, Lines),
@@ -54,30 +54,28 @@ parse_genloc(Body, _User, _Device) ->
 	% Also Python alternative: https://github.com/Knio/pynmea2
 	% Other way is to create a micro-HTTP service dedicated to the task.
 	% --> This can help others and may be a service for geo-gateway.com.
-	% io:format("~p~n", [PayloadLines]),
+	lager:debug("~p", [PayloadLines]),
 	Payload = lists:map(
 		fun (Line) ->
-			% io:format("Line: ~s~n", [Line]),
+			lager:debug("Line: ~s~n", [Line]),
 			case string:split(Line, <<",">>) of
 				[<<"$GPLOC">>,_] ->
 					parse_nmea(<<"GPLOC">>, Line);
 				[<<"$GPRMC">>,_] ->
 					parse_nmea(<<"GPRMC">>, Line);
 				_ ->
-					% TODO Do something: the forwarder may choose to alert
-					% on failed parsing.
-					io:format("momatch: ~p~n", [string:split(Line, ",")]),
+					lager:error("momatch: ~p", [string:split(Line, ",")]),
 					{momatch, Line}
 			end
 		end,
 		PayloadLines
 	),
-	% io:format("~p~n", [Payload]),
+	lager:debug("~p", [Payload]),
 	{ok, Payload}.
 
 -spec parse_nmea(Type :: binary(), Line :: binary()) -> {'ok', map()}.
 parse_nmea(<<"GPLOC">>, Line) ->
-	% io:format("GPLOC: ~s~n", [Line]),
+	lager:debug("GPLOC: ~s", [Line]),
 	Splitted = string:split(Line, <<",">>, all),
 	Elements = array:from_list(Splitted),
 	Time = parse_time_hhmmssmm(array:get(3, Elements)),
@@ -95,7 +93,7 @@ parse_nmea(<<"GPLOC">>, Line) ->
 		raw => Line
 	}};
 parse_nmea(<<"GPRMC">>, Line) ->
-	% io:format("GPRMC: ~s~n", [Line]),
+	lager:debug("GPRMC: ~s", [Line]),
 	Splitted = string:split(Line, <<",">>, all),
 	Elements = array:from_list(Splitted),
 	Date = parse_date_ddmmyy(array:get(9, Elements)),

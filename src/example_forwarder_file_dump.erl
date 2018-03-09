@@ -20,7 +20,7 @@ forward_one(Reference, Payloads, _User, _Device, Forwarder) ->
 	Formatted = io_lib:format(
 		"~p\n", [Payloads]
 	),
-	io:format("Write payload dump to: ~s~n", [FilePath]),
+	lager:debug("Write payload dump to: ~s", [FilePath]),
 	ok = file:write_file(
 		FilePath, Formatted
 	),

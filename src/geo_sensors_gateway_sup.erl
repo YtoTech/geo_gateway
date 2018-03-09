@@ -29,9 +29,9 @@ start_link() ->
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-	% io:format("Env is ~p~n", [application:get_all_env()]),
+	lager:debug("Env is ~p", [application:get_all_env()]),
 	% Load application configuration.
-	% io:format("Env is ~p~n", [application:get_env(gateway_config_loader)]),
+	lager:debug("Config loader is ~p", [application:get_env(gateway_config_loader)]),
 	{ok, ConfigLoaderName} = application:get_env(gateway_config_loader),
 	ConfigLoader = list_to_atom(ConfigLoaderName),
 	{module, _} = code:ensure_loaded(ConfigLoader),
@@ -45,7 +45,7 @@ init([]) ->
 		devices := Devices,
 		forwarders := Forwarders
 	} = ConfigLoader:load_config(),
-	% io:format("Users are ~p~n", [Users]),
+	lager:debug("Users are ~p", [Users]),
 	% TODO Use the new supervisor spec using a Map to be more readable.
 	% http://erlang.org/doc/man/supervisor.html
 	% http://erlang.org/doc/design_principles/sup_princ.html
