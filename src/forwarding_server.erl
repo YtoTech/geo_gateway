@@ -22,6 +22,10 @@
 -export([
 	init/1, handle_call/3, handle_cast/2
 ]).
+%% For tests.
+-export([
+	reschedule_compute_delay/1
+]).
 
 %%====================================================================
 %% API
@@ -114,8 +118,9 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 % This could be a gen_server? --> with special handler for trapping exits.
 
 % TODO Make MAX_RETRIES configurable.
--define(MAX_RETRIES, 3).
+-define(MAX_RETRIES, 11).
 -define(RETRY_DELAY, 500).
+-define(RETRY_MAX_BACKOFF_FACTOR, 240).
 
 -record(
 	state,
@@ -244,9 +249,16 @@ reschedule(State = #state{is_shuttingdown=false}, FailedTask, RunningUpdated) ->
 	scheduler(State#state{running=RunningUpdated}).
 
 reschedule_compute_delay(ToReschedule) ->
-	% TODO Reschedule after a (borned random) delay to avoid spamming loop
+	% Reschedule after a delay to avoid getting in a spamming failure-loop
 	% just after a transient error occured. Use a back-off exponential delay
 	% algorithm similar to TCP-one.
-	% We can use https://erldocs.com/18.0/stdlib/timer.html#send_after/2 for that purpose.
-	% TODO Also make the delay a bit random.
-	maps:get(retries, ToReschedule) * ?RETRY_DELAY.
+	% TODO Also make the delay a bit random (borned random) to avoid
+	% triggering a bunch of similar task on the same forwarding service
+	% at the same time (for e.g. when we received a batch of manies and X % timeout
+	% at the same time on their first transmission).
+	backoff_rec(maps:get(retries, ToReschedule), 1) * ?RETRY_DELAY.
+
+backoff_rec(1, D) ->
+	D;
+backoff_rec(N, D) ->
+	backoff_rec(N-1, backoff:increment(D, ?RETRY_MAX_BACKOFF_FACTOR)).
