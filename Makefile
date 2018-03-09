@@ -15,11 +15,11 @@ lint:
 	rebar3 dialyzer
 
 test:
-	rebar3 eunit
+	ERL_FLAGS="-config ./priv/conf/sys.config" rebar3 eunit
 
 test-cover:
 	# TODO Find how we can visualize this data. (In CLI, CI)
-	rebar3 eunit --cover
+	ERL_FLAGS="-config ./priv/conf/sys.config" rebar3 eunit --cover
 
 # Releasing and running in production.
 release:

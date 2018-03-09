@@ -181,7 +181,7 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 		{'EXIT', Pid, Reason} ->
 			case maps:is_key(Pid, Running) of
 				false ->
-					io:format("Received EXIT from unknown worker: ~p", [Pid, Reason]),
+					io:format("Received EXIT from unknown worker: ~p. Reader: ~p", [Pid, Reason]),
 					ok;
 				_ -> ok
 			end,
