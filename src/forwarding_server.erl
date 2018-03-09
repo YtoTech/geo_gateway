@@ -115,7 +115,7 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 %% Gateway Forwarding Scheduler
 %%====================================================================
 % Naive implementation. Should be in its own module.
-% This could be a gen_server? --> with special handler for trapping exits.
+% TODO This could be a gen_server? --> with special handler for trapping exits.
 
 % TODO Make MAX_RETRIES configurable.
 -define(MAX_RETRIES, 11).
@@ -136,28 +136,29 @@ start_scheduler() ->
 	register(gateway_forwarding_scheduler, Pid).
 
 init_scheduler() ->
-	% TODO Use monitors, not links, as trapping exit signals will give us any
-	% error signal (including from the forwarding server: bidirectionnal).
 	process_flag(trap_exit, true),
 	scheduler(#state{}).
 
 schedule(ForwarderDescriptor) ->
-	% TODO Get a response (and use a ref to get).
-	% --> Use another gen_server for the scheduler.
+	% Get a response to ensure the scheduler is alive.
 	Ref = make_ref(),
 	gateway_forwarding_scheduler ! {to_schedule, self(), Ref, ForwarderDescriptor},
 	receive
-		{ok, Ref} -> ok
+		{ok, Ref} -> ok;
+		{error, Reason} -> {error, Reason}
 	after 500
 		-> {error, schedule_timeout}
 	end.
 
-scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others], running=Running}) ->
-	% TODO (Add worker pooling) Take from record: worker pool, forwarding to run.
-	% If N worker processes available, and M task to run,
-	% launch min(N,M) forwarding processes. (linking to them)
-	% May https://github.com/devinus/poolboy or https://github.com/inaka/worker_pool
-	% TODO Add
+scheduler(State = #state{to_schedule=[ToSchedule|Others], running=Running}) ->
+	% TODO We may support worker pooling strategy to control how many task of a kind
+	% (forwarding module) are spawned.
+	% For now, this launch all these at the same time.
+	% Algo may be:
+	% - take from record worker pool, forwarding to run;
+	% - ff N worker processes available, and M task to run launch min(N,M)
+	% forwarding processes.
+	% May use https://github.com/devinus/poolboy or https://github.com/inaka/worker_pool
 	scheduler(State#state{
 		to_schedule=Others,
 		running=maps:put(
@@ -166,12 +167,18 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=[ToSchedule|Others],
 			Running
 		)
 	});
-scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=Running}) ->
-	% Here receive and recurse again.
+scheduler(State = #state{is_shuttingdown=IsShuttingdown, to_schedule=ToSchedule, running=Running}) ->
+	% Here receive events and recurse again.
 	receive
 		{to_schedule, From, Ref, ForwarderDescriptor} ->
-			From ! {ok, Ref},
-			scheduler(State#state{to_schedule=[#{ forwarder_desc => ForwarderDescriptor, retries => 0 }|ToSchedule]});
+			case IsShuttingdown of
+				false ->
+					From ! {ok, Ref},
+					scheduler(State#state{to_schedule=[#{ forwarder_desc => ForwarderDescriptor, retries => 0 }|ToSchedule]});
+				true ->
+					From ! {error, is_shuttingdown},
+					scheduler(State)
+			end;
 		{to_reschedule, Pid, ToReschedule} when Pid =:= self() ->
 			lager:info("Reschedule timeout triggered for ~s", [nested:get([forwarder_desc, module], ToReschedule)]),
 			scheduler(State#state{to_schedule=[ToReschedule|ToSchedule]});
@@ -212,14 +219,8 @@ scheduler(State = #state{is_shuttingdown=false, to_schedule=ToSchedule, running=
 			lager:error("Received unknown message: ~p", [Message]),
 			scheduler(State)
 	end;
-scheduler(#state{is_shuttingdown=true, running=Running}) when Running =:= #{} ->
-	lager:info("Shutting down ok");
-scheduler(State = #state{is_shuttingdown=true, running=Running}) ->
-	receive
-		% TODO What happend to reschedule taks during shutdown?
-		{'EXIT', Pid, normal} ->
-			scheduler(State#state{running=maps:remove(Pid, Running)})
-	end.
+scheduler(#state{is_shuttingdown=true, to_schedule=[], running=Running}) when Running =:= #{} ->
+	lager:info("Shutting down ok").
 
 launch_worker(ForwarderDescriptor) ->
 	spawn_link(
@@ -233,7 +234,7 @@ launch_worker(ForwarderDescriptor) ->
 		end
 	).
 
-reschedule(State = #state{is_shuttingdown=false}, FailedTask, RunningUpdated) ->
+reschedule(State, FailedTask, RunningUpdated) ->
 	% TODO What about reschedule tasks during shut down?
 	ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
 	lager:debug("Reschedule ~p", [ToReschedule]),
