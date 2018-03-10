@@ -75,21 +75,32 @@ parse_genloc(Body, _User, _Device) ->
 
 -spec parse_nmea(Type :: binary(), Line :: binary()) -> {'ok', map()}.
 parse_nmea(<<"GPLOC">>, Line) ->
+	% TODO The GPLOC NMEA is configurable on the sensor and thus its format is
+	% variable. Make the expected trame format configurable for each device.
+	% For the moment, we try to guess.
 	lager:debug("GPLOC: ~s", [Line]),
 	Splitted = string:split(Line, <<",">>, all),
 	Elements = array:from_list(Splitted),
-	Time = parse_time_hhmmssmm(array:get(3, Elements)),
+	{Offset, _Identifier} = case array:get(1, Elements) of
+		Status when Status =:= <<"A">>; Status =:= <<"V">> ->
+		% <<"A">> ->
+			{0, undef};
+		Identifier ->
+			{1, Identifier}
+	end,
+	Time = parse_time_hhmmssmm(array:get(3 + Offset, Elements)),
 	{ok, #{
 		format => <<"GPLOC">>,
-		status => array:get(1, Elements),
-		fix_quality => array:get(2, Elements),
+		status => array:get(1 + Offset, Elements),
+		fix_quality => array:get(2 + Offset, Elements),
 		time => Time,
 		% TODO Get a normalized timestamp.
 		% How to determine timestamp? We can not be sure the trame is
 		% from today.
+		date => nil,
 		timestamp => nil,
-		latitude => geo_conversions:sexagesimal_to_decimal(array:get(4, Elements), array:get(5, Elements)),
-		longitude => geo_conversions:sexagesimal_to_decimal(array:get(6, Elements), array:get(7, Elements)),
+		latitude => geo_conversions:sexagesimal_to_decimal(array:get(4 + Offset, Elements), array:get(5 + Offset, Elements)),
+		longitude => geo_conversions:sexagesimal_to_decimal(array:get(6 + Offset, Elements), array:get(7 + Offset, Elements)),
 		raw => Line
 	}};
 parse_nmea(<<"GPRMC">>, Line) ->

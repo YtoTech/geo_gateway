@@ -68,3 +68,58 @@ parse_genloc_gprmc_test_() ->
 			?assertEqual(lists:nth(3, ParsedExpected), lists:nth(3, ResultPayloadItems))
 		end}
 	].
+
+parse_genloc_gploc_test_() ->
+	[
+		{"Parse a payload of typical Genloc $GPLOC messages",
+		fun() ->
+			Body = <<" $GPLOC,358683066123549,A,1,125807.00,4834.37575,N,00105.99399,W,00000,3181000000003775*20\n"
+			" $GPLOC,358683066123549,A,1,081247.00,4834.36782,N,00105.95857,W,01100,3194857900003819*2D">>,
+			User = #{
+				device => <<"ercogener_genloc_341e">>,
+				dumps_incoming => true,
+				email => <<"test@ytotech.com">>,
+				forwarders => [<<"file_dump">>],
+				password => <<"coincoin">>
+			},
+			Devices = #{
+				<<"ercogener_genloc_341e">> => #{
+					manufacturer => <<"Ercogener">>,
+					model => <<"451e EaseLoc">>,
+					parameters => #{},
+					range => <<"GenLoc">>
+				}
+			},
+			Result = device_payload_parser_example:parse("", Body, User, Devices),
+			{Status, ResultPayloadItems, Device} = Result,
+			?assertEqual(ok, Status),
+			ParsedExpected = [
+				{ok, #{
+					date => nil,
+					fix_quality => <<"1">>,
+					format => <<"GPLOC">>,
+					latitude => 48.57292916666667,
+					longitude => -1.0998998333333334,
+					raw => <<"$GPLOC,358683066123549,A,1,125807.00,4834.37575,N,00105.99399,W,00000,3181000000003775*20">>,
+					status => <<"A">>,
+					time => {12,58,7.0},
+					timestamp => nil
+				}},
+				{ok,#{
+					date => nil,
+					fix_quality => <<"1">>,
+					format => <<"GPLOC">>,
+					latitude => 48.572797,
+					longitude => -1.0993095,
+					raw => <<"$GPLOC,358683066123549,A,1,081247.00,4834.36782,N,00105.95857,W,01100,3194857900003819*2D">>,
+					status => <<"A">>,
+					time => {8,12,47.0},
+					timestamp => nil
+				}}
+			],
+			?assertEqual(2, length(ResultPayloadItems)),
+			?assertEqual(maps:get(<<"ercogener_genloc_341e">>, Devices), Device),
+			?assertEqual(lists:nth(1, ParsedExpected), lists:nth(1, ResultPayloadItems)),
+			?assertEqual(lists:nth(2, ParsedExpected), lists:nth(2, ResultPayloadItems))
+		end}
+	].
