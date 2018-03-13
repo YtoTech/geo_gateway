@@ -81,44 +81,6 @@ load_configuration_test_() ->
 	}
 ).
 
-% TODO How to specify the drop ratio without duplicating all the config.
--define(
-	SAMPLE_CONFIG_DROP_25,
-	#{
-		users => #{
-			<<"annon">> => #{
-				email => <<"test@ytotech.com">>,
-				password => <<"coincoin">>,
-				device => <<"ercogener_genloc_341e">>,
-				dumps_incoming => false,
-				forwarders => [
-					<<"erlang_module_forwarder">>
-				]
-			}
-		},
-		devices => #{
-			<<"ercogener_genloc_341e">> => #{
-				manufacturer => <<"Ercogener">>,
-				range => <<"GenLoc">>,
-				model => <<"451e EaseLoc">>
-			}
-		},
-		smtp_gateway => #{
-			port => 2525
-		},
-		forwarders => #{
-			<<"erlang_module_forwarder">> => #{
-				module => <<"example_module_forwarder">>,
-				parameters => #{
-					target_module => <<"test_receiver">>,
-					drop_strategy => random,
-					drop_rate => 0.25
-				}
-			}
-		}
-	}
-).
-
 -define(
 	SAMPLE_EMAIL,
 	{
@@ -147,7 +109,7 @@ load_configuration_test_() ->
 ).
 
 forwarding_test_() ->
-	{timeout, 10,
+	{timeout, 15,
 	[
 		{"We can forward to a simple test box receiver",
 		?setup_config(fun() ->
@@ -177,15 +139,24 @@ forwarding_test_() ->
 				end,
 				ReceivedPayloads
 			)
-		end, ?SAMPLE_CONFIG_DROP_25)}
+		end, maps:merge(?SAMPLE_CONFIG, #{
+			forwarders => #{
+				<<"erlang_module_forwarder">> => #{
+					module => <<"example_module_forwarder">>,
+					parameters => #{
+						target_module => <<"test_receiver">>,
+						drop_strategy => random,
+						drop_rate => 0.20
+					}
+				}
+			}
+		}))}
 	]}.
 
-% TODO Test for correct termination with 40 or 50 drop-rate.
-% TODO Test for abort with 99 or 100 drop-rate --> timeout.
+% TODO Test for abort with 99 or 100 drop-rate --> reschedule N times and finally surrender ;
+% and app killed without proper termination.
 % Will need mocking or configuring the timeout delay to trigger it?
-% TODO Create a test for forwarding worker retry strategy.
-% (Ensure it reschedule and surrender after N times).
-
+% (Or else will be way too long?)
 % If we need mocking: https://github.com/eproxus/meck
 
 %%%%%%%%%%%%%%%%%%%%%%%

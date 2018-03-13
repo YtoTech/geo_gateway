@@ -2,8 +2,10 @@
 %% sensor payloads. Should return immediately and handle forwarding in
 %% dedicated processes.
 %%
-%% TODO Implement as a gen_server? Let the client decide?
 -module(geo_forwarder).
 -author('yoan@ytotech.com').
 
+% TODO Allows two forwarder type:
+% - forward (all payloads received in a mail);
+% - forward_one (one by one).
 -callback forward(Reference :: binary(), Payload :: list(), User :: map(), Device :: map(), Forwarders :: list()) -> 'ok'.
