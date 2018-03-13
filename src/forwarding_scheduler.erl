@@ -29,7 +29,7 @@
 % TODO Make MAX_RETRIES configurable.
 -define(MAX_RETRIES, 11).
 -define(RETRY_DELAY, 500).
--define(RETRY_MAX_BACKOFF_FACTOR, 240).
+-define(RETRY_MAX_BACKOFF_DELAY, 120000).
 
 -record(
 	state,
@@ -193,9 +193,9 @@ reschedule_compute_delay(ToReschedule) ->
 	% triggering a bunch of similar task on the same forwarding service
 	% at the same time (for e.g. when we received a batch of manies and X % timeout
 	% at the same time on their first transmission).
-	backoff_delay_multiplier(maps:get(retries, ToReschedule)) * ?RETRY_DELAY.
+	backoff_delay(maps:get(retries, ToReschedule)).
 
-backoff_delay_multiplier(1) ->
-	1;
-backoff_delay_multiplier(FailCount) ->
-	backoff:increment(1 bsl (FailCount - 2), ?RETRY_MAX_BACKOFF_FACTOR).
+backoff_delay(1) ->
+	?RETRY_DELAY;
+backoff_delay(FailCount) ->
+	backoff:increment(?RETRY_DELAY bsl (FailCount - 2), ?RETRY_MAX_BACKOFF_DELAY).
