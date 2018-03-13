@@ -1,7 +1,7 @@
 %% @doc A simple example callback module for `gen_smtp_server_session' that also serves as
 %% documentation for the required callback API.
 
--module(smtp_server).
+-module(geo_gateway_smtp_server).
 -author('yoan@ytotech.com').
 -behaviour(gen_smtp_server_session).
 

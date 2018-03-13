@@ -50,8 +50,8 @@ init([]) ->
 	% http://erlang.org/doc/man/supervisor.html
 	% http://erlang.org/doc/design_principles/sup_princ.html
 	SmtpServer = {
-		gen_smtp_server,
-		{gen_smtp_server, start_link, [smtp_server, [[
+		geo_gateway_smtp_server,
+		{gen_smtp_server, start_link, [geo_gateway_smtp_server, [[
 			{port, maps:get(port, SmtpGateway, 25)},
 			{sessionoptions,
 				[{callbackoptions,
@@ -69,7 +69,7 @@ init([]) ->
 		permanent,
 		2000,
 		worker,
-		[gen_smtp_server]
+		[geo_gateway_smtp_server]
 	},
 	ForwardingServer = {
 		geo_gateway_forwarding_server,
