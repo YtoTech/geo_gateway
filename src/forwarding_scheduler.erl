@@ -4,6 +4,9 @@
 %% their failures.
 %%
 %% Manage forwarding workload, with retry on forwarder failure, load management.
+%%
+%% We reimplement in a great part the https://hexdocs.pm/gen_retry/GenRetry.html
+%% bahviour for our forwarding tasks.
 
 -module(forwarding_scheduler).
 -author('yoan@ytotech.com').
@@ -190,9 +193,9 @@ reschedule_compute_delay(ToReschedule) ->
 	% triggering a bunch of similar task on the same forwarding service
 	% at the same time (for e.g. when we received a batch of manies and X % timeout
 	% at the same time on their first transmission).
-	backoff_rec(maps:get(retries, ToReschedule), 1) * ?RETRY_DELAY.
+	backoff_delay_multiplier(maps:get(retries, ToReschedule)) * ?RETRY_DELAY.
 
-backoff_rec(1, D) ->
-	D;
-backoff_rec(N, D) ->
-	backoff_rec(N-1, backoff:increment(D, ?RETRY_MAX_BACKOFF_FACTOR)).
+backoff_delay_multiplier(1) ->
+	1;
+backoff_delay_multiplier(FailCount) ->
+	backoff:increment(1 bsl (FailCount - 2), ?RETRY_MAX_BACKOFF_FACTOR).
