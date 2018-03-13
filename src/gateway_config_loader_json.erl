@@ -27,7 +27,7 @@ load_config() ->
 	% TODO Allows to override configuration file path.
 	% The users are indexed by username, because we encounter
 	% first the AUTH in the process of receiving a mail.
-	{ok, ConfigFilePath} = application:get_env(geo_sensors_gateway, json_configuration_file),
+	{ok, ConfigFilePath} = application:get_env(geo_gateway, json_configuration_file),
 	lager:info("Using configuration file ~s", [ConfigFilePath]),
 	ConfigurationFileContent = case file:read_file(ConfigFilePath) of
 		{ok, CFC} ->

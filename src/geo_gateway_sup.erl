@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
-%% @doc geo_sensors_gateway top level supervisor.
+%% @doc geo_gateway top level supervisor.
 %% @end
 %%%-------------------------------------------------------------------
 
--module(geo_sensors_gateway_sup).
+-module(geo_gateway_sup).
 
 -behaviour(supervisor).
 

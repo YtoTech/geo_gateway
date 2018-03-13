@@ -1,9 +1,9 @@
-# GeoSensors Gateway
+# Geo Sensors Gateway
 
 > Receive and redistribute data from vehicle geolocation sensors.
 
-[![Build Status](https://travis-ci.org/YtoTech/geo_sensors_gateway.svg?branch=master)](https://travis-ci.org/YtoTech/geo_sensors_gateway)
-[![Hex pm](http://img.shields.io/hexpm/v/geo_sensors_gateway.svg?style=flat)](https://hex.pm/packages/geo_sensors_gateway)
+[![Build Status](https://travis-ci.org/YtoTech/geo_gateway.svg?branch=master)](https://travis-ci.org/YtoTech/geo_gateway)
+[![Hex pm](http://img.shields.io/hexpm/v/geo_gateway.svg?style=flat)](https://hex.pm/packages/geo_gateway)
 
 Prototyping project to receive data from remote Ercogener Genloc sensors.
 
@@ -84,8 +84,6 @@ cp ./priv/conf/configuration.json.sample ./priv/conf/configuration.json
     $ make test
 
 Only compatible with Erlang OTP 20+.
-
-TODO Rename project on GitHub to Erlang non-quoted atom `geo_sensors_gateway`.
 
 TODO Installation instructions for Erlang
 * Where to get Erlang distribution

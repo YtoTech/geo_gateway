@@ -1,6 +1,6 @@
-%% @doc Tests for geo_sensors_gateway_app.
+%% @doc Tests for geo_gateway_app.
 
--module(geo_sensors_gateway_app_test).
+-module(geo_gateway_app_test).
 -author('yoan@ytotech.com').
 -include_lib("eunit/include/eunit.hrl").
 
@@ -17,31 +17,31 @@ load_configuration_test_() ->
 	[
 		{"Loads configuration from configuration.json file by default",
 		fun() ->
-			{StartAppStatus, _} = application:ensure_all_started(geo_sensors_gateway),
+			{StartAppStatus, _} = application:ensure_all_started(geo_gateway),
 			?assertEqual(ok, StartAppStatus),
-			ok = application:stop(geo_sensors_gateway)
+			ok = application:stop(geo_gateway)
 		end},
 		{"Loads configuration from configuration.json.tests and ensure it matches",
 		fun() ->
-			ok = application:set_env(geo_sensors_gateway, json_configuration_file, "priv/conf/configuration.json.tests", [{persistent, true}]),
-			{StartAppStatus, _} = application:ensure_all_started(geo_sensors_gateway),
-			% TODO Get internal state. ---> test directly the geo_sensors_gateway_config module.
+			ok = application:set_env(geo_gateway, json_configuration_file, "priv/conf/configuration.json.tests", [{persistent, true}]),
+			{StartAppStatus, _} = application:ensure_all_started(geo_gateway),
+			% TODO Get internal state. ---> test directly the geo_gateway_config module.
 			?assertEqual(ok, StartAppStatus),
-			ok = application:stop(geo_sensors_gateway)
+			ok = application:stop(geo_gateway)
 		end},
 		{"Fails if the specified configuration file does not exists",
 		fun() ->
-			ok = application:set_env(geo_sensors_gateway, json_configuration_file, "noexist.conf", [{persistent, true}]),
-			{StartAppStatus, Reason} = application:ensure_all_started(geo_sensors_gateway),
+			ok = application:set_env(geo_gateway, json_configuration_file, "noexist.conf", [{persistent, true}]),
+			{StartAppStatus, Reason} = application:ensure_all_started(geo_gateway),
 			?assertEqual(error, StartAppStatus),
-			{geo_sensors_gateway, {{ReasonForApp, _}, _}} = Reason,
+			{geo_gateway, {{ReasonForApp, _}, _}} = Reason,
 			?assertEqual(no_configuration, ReasonForApp)
 		end},
 		{"Fails if the config specified is void",
 		?setup_config(fun() ->
-			{StartAppStatus, Reason} = application:ensure_all_started(geo_sensors_gateway),
+			{StartAppStatus, Reason} = application:ensure_all_started(geo_gateway),
 			?assertEqual(error, StartAppStatus),
-			{geo_sensors_gateway, {{ReasonForApp, _}, _}} = Reason,
+			{geo_gateway, {{ReasonForApp, _}, _}} = Reason,
 			?assertEqual({badmatch,#{}}, ReasonForApp)
 		end, #{})}
 	].
@@ -113,16 +113,16 @@ forwarding_test_() ->
 	[
 		{"We can forward to a simple test box receiver",
 		?setup_config(fun() ->
-			{ok, _} = application:ensure_all_started(geo_sensors_gateway),
+			{ok, _} = application:ensure_all_started(geo_gateway),
 			gen_smtp_client:send_blocking(?SAMPLE_EMAIL, ?TEST_GATEWAY_OPTIONS),
-			application:stop(geo_sensors_gateway),
+			application:stop(geo_gateway),
 			ReceivedPayloads = test_receiver:get_received_payloads(),
 			?assertEqual(1, length(ReceivedPayloads)),
 			?assertMatch([?PAYLOAD_PATTERN], ReceivedPayloads)
 		end, ?SAMPLE_CONFIG)},
 		{"All payloads are finally forwarded in presence of transient 25 % drop-rate",
 		?setup_config(fun() ->
-			{ok, _} = application:ensure_all_started(geo_sensors_gateway),
+			{ok, _} = application:ensure_all_started(geo_gateway),
 			lists:foreach(
 				fun(_Index) ->
 					% TODO Use async and wait for all only at the end?
@@ -130,7 +130,7 @@ forwarding_test_() ->
 				end,
 				lists:seq(1, 100)
 			),
-			application:stop(geo_sensors_gateway),
+			application:stop(geo_gateway),
 			ReceivedPayloads = test_receiver:get_received_payloads(),
 			?assertEqual(100, length(ReceivedPayloads)),
 			lists:foreach(
@@ -165,7 +165,7 @@ forwarding_test_() ->
 start_config(Config) ->
 	{ok, _} = gateway_config_loader_process_dict:start_link(),
 	ok = gateway_config_loader_process_dict:set_config(Config),
-	ok = application:set_env(geo_sensors_gateway, gateway_config_loader, "gateway_config_loader_process_dict", [{persistent, true}]),
+	ok = application:set_env(geo_gateway, gateway_config_loader, "gateway_config_loader_process_dict", [{persistent, true}]),
 	{ok, _} = test_receiver:start_link(),
 	undefined.
 

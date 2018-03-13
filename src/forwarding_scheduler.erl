@@ -198,4 +198,5 @@ reschedule_compute_delay(ToReschedule) ->
 backoff_delay(1) ->
 	?RETRY_DELAY;
 backoff_delay(FailCount) ->
+	% TODO Use rand_increment
 	backoff:increment(?RETRY_DELAY bsl (FailCount - 2), ?RETRY_MAX_BACKOFF_DELAY).

@@ -1,8 +1,8 @@
-{application, geo_sensors_gateway, [
+{application, geo_gateway, [
     {description, "A gateway for receiving and redistributing data from machine sensors"},
     {vsn, "git"},
     {registered, []},
-    {mod, { geo_sensors_gateway_app, []}},
+    {mod, { geo_gateway_app, []}},
     {applications, [
         kernel,
         stdlib,
@@ -27,8 +27,8 @@
         example_forwarder_module,
         forwarding_server,
         forwarding_scheduler,
-        geo_sensors_gateway_app,
-        geo_sensors_gateway_sup,
+        geo_gateway_app,
+        geo_gateway_sup,
         smtp_server,
         gateway_config_loader,
         gateway_config_loader_json,
@@ -37,6 +37,6 @@
     ]},
 
     {maintainers, ["Yoan Tournade"]},
-    {licenses, ["GPL v3"]},
-    {links, [{"GitHub","https://github.com/YtoTech/geo_sensors_gateway"}]}
+    {licenses, ["AGPL v3"]},
+    {links, [{"GitHub","https://github.com/YtoTech/geo_gateway"}]}
 ]}.
