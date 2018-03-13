@@ -1,6 +1,6 @@
-%% @doc Tests for device_payload_parser_example_tests.
+%% @doc Tests for geo_gateway_payload_parser_tests.
 
--module(device_payload_parser_example_test).
+-module(geo_gateway_payload_parser_test).
 -author('yoan@ytotech.com').
 -include_lib("eunit/include/eunit.hrl").
 
@@ -26,7 +26,7 @@ parse_genloc_gprmc_test_() ->
 					range => <<"GenLoc">>
 				}
 			},
-			Result = device_payload_parser_example:parse("", Body, User, Devices),
+			Result = geo_gateway_payload_parser:parse("", Body, User, Devices),
 			{Status, ResultPayloadItems, Device} = Result,
 			?assertEqual(ok, Status),
 			ParsedExpected = [
@@ -90,7 +90,7 @@ parse_genloc_gploc_test_() ->
 					range => <<"GenLoc">>
 				}
 			},
-			Result = device_payload_parser_example:parse("", Body, User, Devices),
+			Result = geo_gateway_payload_parser:parse("", Body, User, Devices),
 			{Status, ResultPayloadItems, Device} = Result,
 			?assertEqual(ok, Status),
 			ParsedExpected = [

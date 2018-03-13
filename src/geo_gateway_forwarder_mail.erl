@@ -3,7 +3,7 @@
 %% Responsible for forwarding parsed sensor payloads. Should return immediately
 %% and handle forwarding in dedicated processes.
 
--module(example_forwarder_mail).
+-module(geo_gateway_forwarder_mail).
 -author('yoan@ytotech.com').
 
 %% API

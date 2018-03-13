@@ -1,13 +1,13 @@
-%% @doc A simple example callback module for `device_payload_parser' that also serves as
+%% @doc A simple example callback module for `geo_gateway_device_payload_parser' that also serves as
 %% documentation for the required callback API.
 %% Responsible for parsing sensor payloads and extract all usefull information
 %% from them.
 %% This data will then be transferred to any endpoint by forwarders.
 
--module(device_payload_parser_example).
+-module(geo_gateway_payload_parser).
 -author('yoan@ytotech.com').
 
--behaviour(device_payload_parser).
+-behaviour(geo_gateway_device_payload_parser).
 
 %% API
 -export([parse/4]).

@@ -14,26 +14,26 @@
         hackney
     ]},
     {env,[
-        {gateway_config_loader, "gateway_config_loader_json"},
+        {gateway_config_loader, "geo_gateway_config_loader_json"},
         {json_configuration_file, "priv/conf/configuration.json"}
     ]},
     {modules, [
-        device_payload_parser,
-        device_payload_parser_example,
-        geo_forwarder,
-        example_forwarder_file_dump,
-        example_forwarder_http,
-        example_forwarder_mail,
+        geo_gateway_device_payload_parser,
+        geo_gateway_payload_parser,
+        geo_gateway_forwarder,
+        geo_gateway_forwarder_file_dump,
+        geo_gateway_forwarder_http,
+        geo_gateway_forwarder_mail,
         example_forwarder_module,
-        forwarding_server,
-        forwarding_scheduler,
+        geo_gateway_forwarding_server,
+        geo_gateway_forwarding_scheduler,
         geo_gateway_app,
         geo_gateway_sup,
         smtp_server,
         gateway_config_loader,
-        gateway_config_loader_json,
-        gateway_config_loader_process_dict,
-        gateway_module_receiver
+        geo_gateway_config_loader_json,
+        geo_gateway_config_loader_in_memory,
+        geo_gateway_module_payload_receiver
     ]},
 
     {maintainers, ["Yoan Tournade"]},

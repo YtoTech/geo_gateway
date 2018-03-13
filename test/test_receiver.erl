@@ -5,7 +5,7 @@
 
 -module(test_receiver).
 
--behaviour(gateway_module_receiver).
+-behaviour(geo_gateway_module_payload_receiver).
 -behaviour(gen_server).
 
 %% API functions.

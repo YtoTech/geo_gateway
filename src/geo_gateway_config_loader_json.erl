@@ -3,9 +3,9 @@
 %% @end
 %%%-------------------------------------------------------------------
 
--module(gateway_config_loader_json).
+-module(geo_gateway_config_loader_json).
 
--behaviour(gateway_config_loader).
+-behaviour(geo_gateway_config_loader).
 
 %% API functions.
 -export([

@@ -21,7 +21,8 @@
 	},
 	"forwarders": {
 		"file_dump": {
-			"module": "example_forwarder_file_dump",
+			"module": "geo_gateway_forwarder_file_dump",
+			"one_by_one": false,
 			"parameters": {
 				"path": "/home/geo-sensors-gateway/dumps/"
 			}

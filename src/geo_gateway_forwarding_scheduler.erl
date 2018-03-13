@@ -8,7 +8,7 @@
 %% We reimplement in a great part the https://hexdocs.pm/gen_retry/GenRetry.html
 %% bahviour for our forwarding tasks.
 
--module(forwarding_scheduler).
+-module(geo_gateway_forwarding_scheduler).
 -author('yoan@ytotech.com').
 
 -behaviour(gen_server).
@@ -47,7 +47,7 @@
 %%====================================================================
 
 start_link() ->
-	gen_server:start_link({local, gateway_forwarding_scheduler}, ?MODULE, [], []).
+	gen_server:start_link({local, geo_gateway_forwarding_scheduler}, ?MODULE, [], []).
 
 stop() ->
 	% Here we ask the scheduler to terminate properly using the stop request.
@@ -55,7 +55,7 @@ stop() ->
 	% it must shot down asap.
 	% In practice the forwarding server stop accepting new tasks and try to run
 	% any remaining tasks successfully before actually stoppping.
-	gen_server:call(gateway_forwarding_scheduler, stop, infinity).
+	gen_server:call(geo_gateway_forwarding_scheduler, stop, infinity).
 
 init([]) ->
 	process_flag(trap_exit, true),
@@ -64,7 +64,7 @@ init([]) ->
 schedule(ForwarderDescriptor) ->
 	% Get a response to ensure the scheduler is alive.
 	lager:debug("Scheduling request ~p", [ForwarderDescriptor]),
-	gen_server:call(gateway_forwarding_scheduler, {to_schedule, ForwarderDescriptor}).
+	gen_server:call(geo_gateway_forwarding_scheduler, {to_schedule, ForwarderDescriptor}).
 
 %%====================================================================
 %% Gateway Forwarding Scheduler
@@ -98,7 +98,7 @@ scheduler(State = #state{to_schedule=[ToSchedule|Others], running=Running}) ->
 	% - ff N worker processes available, and M task to run launch min(N,M)
 	% forwarding processes.
 	% May use https://github.com/devinus/poolboy or https://github.com/inaka/worker_pool
-	% TODO Pooling may be managed in the forwarding_server? This is another concern
+	% TODO Pooling may be managed in the geo_gateway_forwarding_server? This is another concern
 	% as the supervision and relaunch strategy of worker task.
 	scheduler(State#state{
 		to_schedule=Others,

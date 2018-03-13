@@ -3,9 +3,9 @@
 %% @end
 %%%-------------------------------------------------------------------
 
--module(gateway_config_loader_process_dict).
+-module(geo_gateway_config_loader_in_memory).
 
--behaviour(gateway_config_loader).
+-behaviour(geo_gateway_config_loader).
 -behaviour(gen_server).
 
 %% API functions.
@@ -22,18 +22,18 @@
 %%====================================================================
 
 start_link() ->
-	gen_server:start_link({local, gateway_config_loader_process_dict}, ?MODULE, [], []).
+	gen_server:start_link({local, geo_gateway_config_loader_in_memory}, ?MODULE, [], []).
 
 stop() ->
-	gen_server:stop(gateway_config_loader_process_dict).
+	gen_server:stop(geo_gateway_config_loader_in_memory).
 
 -spec load_config() -> #{devices => map(), forwarders => map(), smtp_gateway => map(), users => map()}.
 load_config() ->
-	gen_server:call(gateway_config_loader_process_dict, load_config).
+	gen_server:call(geo_gateway_config_loader_in_memory, load_config).
 
 -spec set_config(Config :: map()) -> ok.
 set_config(Config) ->
-	gen_server:call(gateway_config_loader_process_dict, {set_config, Config}).
+	gen_server:call(geo_gateway_config_loader_in_memory, {set_config, Config}).
 
 %%====================================================================
 %% Internal functions

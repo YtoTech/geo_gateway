@@ -2,7 +2,7 @@
 %% sensor payloads. Should return immediately and handle forwarding in
 %% dedicated processes.
 %%
--module(geo_forwarder).
+-module(geo_gateway_forwarder).
 -author('yoan@ytotech.com').
 
 % TODO Allows two forwarder type:

@@ -72,21 +72,21 @@ init([]) ->
 		[gen_smtp_server]
 	},
 	ForwardingServer = {
-		forwarding_server,
-		{forwarding_server, start_link, []},
+		geo_gateway_forwarding_server,
+		{geo_gateway_forwarding_server, start_link, []},
 		permanent,
 		10000,
 		worker,
-		[forwarding_server]
+		[geo_gateway_forwarding_server]
 	},
-	% Here we want the sceduler with a timeout greater than the forwarding_server.
+	% Here we want the sceduler with a timeout greater than the geo_gateway_forwarding_server.
 	ForwardingScheduler = {
-		forwarding_scheduler,
-		{forwarding_scheduler_sup, start_link, []},
+		geo_gateway_forwarding_scheduler,
+		{geo_gateway_forwarding_scheduler_sup, start_link, []},
 		permanent,
 		240000,
 		worker,
-		[forwarding_scheduler_sup, forwarding_scheduler]
+		[geo_gateway_forwarding_scheduler_sup, geo_gateway_forwarding_scheduler]
 	},
 	Children = [SmtpServer, ForwardingServer, ForwardingScheduler],
 	RestartStrategy = {one_for_one, 2, 5},

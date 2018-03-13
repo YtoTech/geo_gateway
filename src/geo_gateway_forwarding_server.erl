@@ -1,4 +1,4 @@
-%% @doc A forwarding server, implementing the behaviour geo_forwarder.
+%% @doc A forwarding server, implementing the behaviour geo_gateway_forwarder.
 %%
 %% Responsible for forwarding parsed sensor payloads. Should return immediately
 %% and handle forwarding in (a) dedicated process. When this forwarding server has
@@ -7,10 +7,10 @@
 %%
 %% Manage forwarding strategy, with optional persistence before delivery.
 
--module(forwarding_server).
+-module(geo_gateway_forwarding_server).
 -author('yoan@ytotech.com').
 
--behaviour(geo_forwarder).
+-behaviour(geo_gateway_forwarder).
 -behaviour(gen_server).
 
 %% API functions.
@@ -27,14 +27,14 @@
 %%====================================================================
 
 start_link() ->
-	gen_server:start_link({local, gateway_forwarding_server}, ?MODULE, [], []).
+	gen_server:start_link({local, geo_gateway_forwarding_server}, ?MODULE, [], []).
 
 stop() ->
-	gen_server:stop(gateway_forwarding_server).
+	gen_server:stop(geo_gateway_forwarding_server).
 
 -spec forward(Reference :: binary(), Payload :: list(), User :: map(), Device :: map(), Forwarders :: list()) -> ok.
 forward(Reference, Payload, User, Device, Forwarders) ->
-	gen_server:call(gateway_forwarding_server, {forward, {Reference, Payload, User, Device, Forwarders}}).
+	gen_server:call(geo_gateway_forwarding_server, {forward, {Reference, Payload, User, Device, Forwarders}}).
 
 %%====================================================================
 %% Internal functions
@@ -62,7 +62,7 @@ handle_call({forward, {Reference, Payload, User, Device, Forwarders}}, _From, St
 	% Put the dict in a record. #forwards
 	{
 		reply,
-		gen_server:cast(gateway_forwarding_server, {do_forward, {Reference, Payload, User, Device, Forwarders}}),
+		gen_server:cast(geo_gateway_forwarding_server, {do_forward, {Reference, Payload, User, Device, Forwarders}}),
 		State
 	};
 
@@ -87,7 +87,7 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 							% TODO Handle error?
 							% Add to forwarding to run and launch a schedule/0 pass.
 							lager:debug("Ask for scheduling of ~p", [Reference]),
-							ok = forwarding_scheduler:schedule(#{
+							ok = geo_gateway_forwarding_scheduler:schedule(#{
 								module => Module,
 								function => forward_one,
 								args => [Reference, Payload, User, Device, Forwarder],

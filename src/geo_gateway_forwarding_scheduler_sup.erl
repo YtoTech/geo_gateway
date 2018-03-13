@@ -2,7 +2,7 @@
 %%
 %% Mainly forward to him a stop event so it has a chance to terminate properly.
 
--module(forwarding_scheduler_sup).
+-module(geo_gateway_forwarding_scheduler_sup).
 -author('yoan@ytotech.com').
 
 -behaviour(gen_server).
@@ -21,11 +21,11 @@
 %%====================================================================
 
 start_link() ->
-	forwarding_scheduler:start_link(),
-	gen_server:start_link({local, gateway_forwarding_scheduler_sup}, ?MODULE, [], []).
+	geo_gateway_forwarding_scheduler:start_link(),
+	gen_server:start_link({local, geo_gateway_forwarding_scheduler_sup}, ?MODULE, [], []).
 
 stop() ->
-	gen_server:stop(forwarding_scheduler_sup).
+	gen_server:stop(geo_gateway_forwarding_scheduler_sup).
 
 init([]) ->
 	process_flag(trap_exit, true),
@@ -38,6 +38,6 @@ handle_call(_Message, _From, State) ->
 	{reply, {error, invalid_request}, State}.
 
 terminate(shutdown, _State) ->
-	forwarding_scheduler:stop();
+	geo_gateway_forwarding_scheduler:stop();
 terminate(normal, _State) ->
     ok.

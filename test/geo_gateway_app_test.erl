@@ -72,7 +72,7 @@ load_configuration_test_() ->
 		},
 		forwarders => #{
 			<<"erlang_module_forwarder">> => #{
-				module => <<"example_module_forwarder">>,
+				module => <<"geo_gateway_forwarder_module">>,
 				parameters => #{
 					target_module => <<"test_receiver">>
 				}
@@ -142,7 +142,7 @@ forwarding_test_() ->
 		end, maps:merge(?SAMPLE_CONFIG, #{
 			forwarders => #{
 				<<"erlang_module_forwarder">> => #{
-					module => <<"example_module_forwarder">>,
+					module => <<"geo_gateway_forwarder_module">>,
 					parameters => #{
 						target_module => <<"test_receiver">>,
 						drop_strategy => random,
@@ -163,12 +163,12 @@ forwarding_test_() ->
 %%% SETUP FUNCTIONS %%%
 %%%%%%%%%%%%%%%%%%%%%%%
 start_config(Config) ->
-	{ok, _} = gateway_config_loader_process_dict:start_link(),
-	ok = gateway_config_loader_process_dict:set_config(Config),
-	ok = application:set_env(geo_gateway, gateway_config_loader, "gateway_config_loader_process_dict", [{persistent, true}]),
+	{ok, _} = geo_gateway_config_loader_in_memory:start_link(),
+	ok = geo_gateway_config_loader_in_memory:set_config(Config),
+	ok = application:set_env(geo_gateway, gateway_config_loader, "geo_gateway_config_loader_in_memory", [{persistent, true}]),
 	{ok, _} = test_receiver:start_link(),
 	undefined.
 
 stop_config(_) ->
-	ok = gateway_config_loader_process_dict:stop(),
+	ok = geo_gateway_config_loader_in_memory:stop(),
 	ok = test_receiver:stop().

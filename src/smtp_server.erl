@@ -140,7 +140,7 @@ handle_DATA(From, To, Data, State) ->
 			lager:debug("User: ~p", [User]),
 			% Now parse the actual sensor payload.
 			% TODO Make this customizable.
-			case device_payload_parser_example:parse(
+			case geo_gateway_payload_parser:parse(
 				Reference,
 				Body,
 				User,
@@ -153,7 +153,7 @@ handle_DATA(From, To, Data, State) ->
 					% transmission.
 					% TODO Make this customizable.
 					% TODO Try catch forwarding so we can always dump incoming file!
-					ok = forwarding_server:forward(
+					ok = geo_gateway_forwarding_server:forward(
 						Reference,
 						Payload,
 						User,

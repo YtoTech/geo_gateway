@@ -1,9 +1,7 @@
 %% @doc A simple example callback module for `forwarder' that also serves as
 %% documentation for the required callback API.
-%% Responsible for forwarding parsed sensor payloads. Should return immediately
-%% and handle forwarding in dedicated processes.
 
--module(example_module_forwarder).
+-module(geo_gateway_forwarder_module).
 -author('yoan@ytotech.com').
 
 %% API
