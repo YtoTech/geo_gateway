@@ -38,8 +38,6 @@ handle_call(_Message, _From, State) ->
 	{reply, {error, invalid_request}, State}.
 
 terminate(shutdown, _State) ->
-	lager:info("Shutdown request sup"),
-	forwarding_scheduler:stop(),
-	ok;
+	forwarding_scheduler:stop();
 terminate(normal, _State) ->
     ok.

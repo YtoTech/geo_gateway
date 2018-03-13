@@ -47,7 +47,11 @@ start_link() ->
 	gen_server:start_link({local, gateway_forwarding_scheduler}, ?MODULE, [], []).
 
 stop() ->
-	lager:warning("Stop!"),
+	% Here we ask the scheduler to terminate properly using the stop request.
+	% It lets the gen_server continue to work, while our forwarding server knows
+	% it must shot down asap.
+	% In practice the forwarding server stop accepting new tasks and try to run
+	% any remaining tasks successfully before actually stoppping.
 	gen_server:call(gateway_forwarding_scheduler, stop, infinity).
 
 init([]) ->
@@ -91,6 +95,8 @@ scheduler(State = #state{to_schedule=[ToSchedule|Others], running=Running}) ->
 	% - ff N worker processes available, and M task to run launch min(N,M)
 	% forwarding processes.
 	% May use https://github.com/devinus/poolboy or https://github.com/inaka/worker_pool
+	% TODO Pooling may be managed in the forwarding_server? This is another concern
+	% as the supervision and relaunch strategy of worker task.
 	scheduler(State#state{
 		to_schedule=Others,
 		running=maps:put(
@@ -109,10 +115,6 @@ scheduler(State = #state{to_schedule=[]}) ->
 handle_info({'EXIT', Pid, normal}, State = #state{running=Running}) ->
 	gen_server:cast(self(), schedule),
 	{noreply, State#state{running=maps:remove(Pid, Running)}};
-handle_info({'EXIT', Pid, shutdown}, State) ->
-	lager:info("~p is shutting down too", [Pid]),
-	{noreply, State};
-	% {noreply, State#state{is_shuttingdown=true}};
 handle_info({'EXIT', Pid, Reason}, State = #state{running=Running}) ->
 	case maps:is_key(Pid, Running) of
 		false ->
@@ -158,7 +160,6 @@ launch_worker(ForwarderDescriptor) ->
 	).
 
 reschedule(State = #state{rescheduled=Rescheduled}, FailedTask, RunningUpdated) ->
-	% TODO What about reschedule tasks during shut down?
 	ToReschedule = maps:update(retries, maps:get(retries, FailedTask) + 1, FailedTask),
 	lager:debug("Reschedule ~p", [ToReschedule]),
 	Delay = reschedule_compute_delay(ToReschedule),
@@ -173,9 +174,6 @@ reschedule(State = #state{rescheduled=Rescheduled}, FailedTask, RunningUpdated) 
 	RescheduledUpdated = maps:put(Ref, #{ timer => TRef, task => ToReschedule }, Rescheduled),
 	{noreply, State#state{running=RunningUpdated, rescheduled=RescheduledUpdated}}.
 
-terminate(shutdown, _State) ->
-	lager:error("Shutdown request"),
-	ok;
 terminate(normal, _State) ->
 	lager:info("Shutting down ok"),
     ok.
