@@ -86,6 +86,7 @@ do_forward(Reference, Payload, User, Device, Forwarders) ->
 						{module, Module} ->
 							% TODO Handle error?
 							% Add to forwarding to run and launch a schedule/0 pass.
+							lager:debug("Ask for scheduling of ~p", [Reference]),
 							ok = forwarding_scheduler:schedule(#{
 								module => Module,
 								function => forward_one,
