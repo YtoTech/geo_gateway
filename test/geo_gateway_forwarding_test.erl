@@ -115,8 +115,27 @@ forwarding_test_() ->
 			application:stop(geo_gateway),
 			ReceivedPayloads = test_receiver:get_received_payloads(),
 			?assertEqual(1, length(ReceivedPayloads)),
+			?assertMatch([[?PAYLOAD_PATTERN]], ReceivedPayloads)
+		end, ?SAMPLE_CONFIG)},
+		{"We can forward one by one to a simple test box receiver",
+		?setup_config(fun() ->
+			{ok, _} = application:ensure_all_started(geo_gateway),
+			gen_smtp_client:send_blocking(?SAMPLE_EMAIL, ?TEST_GATEWAY_OPTIONS),
+			application:stop(geo_gateway),
+			ReceivedPayloads = test_receiver:get_received_payloads(),
+			?assertEqual(1, length(ReceivedPayloads)),
 			?assertMatch([?PAYLOAD_PATTERN], ReceivedPayloads)
-		end, ?SAMPLE_CONFIG)}
+		end, maps:merge(?SAMPLE_CONFIG, #{
+			forwarders => #{
+				<<"erlang_module_forwarder">> => #{
+					module => <<"geo_gateway_forwarder_module">>,
+					one_by_one => true,
+					parameters => #{
+						target_module => <<"test_receiver">>
+					}
+				}
+			}
+		}))}
 	].
 
 forwarding_scheduler_test_() ->
@@ -137,7 +156,7 @@ forwarding_scheduler_test_() ->
 			?assertEqual(100, length(ReceivedPayloads)),
 			lists:foreach(
 				fun(ReceivedPayload) ->
-					?assertMatch(?PAYLOAD_PATTERN, ReceivedPayload)
+					?assertMatch([?PAYLOAD_PATTERN], ReceivedPayload)
 				end,
 				ReceivedPayloads
 			)

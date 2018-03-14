@@ -46,7 +46,7 @@ handle_cast(_Request, State) ->
 	{noreply, State}.
 
 handle_call({on_payload, Payload, _User, _Device, _Forwarder}, _From, State) ->
-	{reply, ok, State ++ Payload};
+	{reply, ok, State ++ [Payload]};
 
 handle_call(get_received_payloads, _From, State) ->
 	{reply, State, State};
