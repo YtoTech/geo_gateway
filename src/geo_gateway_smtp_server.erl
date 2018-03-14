@@ -151,8 +151,6 @@ handle_DATA(From, To, Data, State) ->
 					% When payload extracted from the mail,
 					% give it to the forwarder module that will handle its
 					% transmission.
-					% TODO Make this customizable.
-					% TODO Try catch forwarding so we can always dump incoming file!
 					ok = geo_gateway_forwarding_router:forward(
 						Reference,
 						Payload,
