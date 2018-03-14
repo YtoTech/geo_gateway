@@ -75,6 +75,37 @@
 	}}
 ).
 
+smtp_test_() ->
+	[
+		% {"Connection is refused on bad password",
+		% ?setup_config(fun() ->
+		% 	{ok, _} = application:ensure_all_started(geo_gateway),
+		% 	?assertThrow(
+		% 		{permanent_failure, <<"535 Authentication Failed\r\n">>},
+		% 		% TODO gen_server should return 535 in case of handle_AUTH failure.
+		% 		% I'm not sure also what is doing send_blocking as I have no clear
+		%		% result.
+		% 		gen_smtp_client:send_blocking(
+		% 			?SAMPLE_EMAIL,
+		% 			[{relay, "localhost"}, {username, "annon"}, {password, "coin"}, {port, 2525}]
+		% 		)
+		% 	),
+		% 	application:stop(geo_gateway)
+		% end, ?SAMPLE_CONFIG)},
+		{"Connection is refused on bad user",
+		?setup_config(fun() ->
+			{ok, _} = application:ensure_all_started(geo_gateway),
+			?assertThrow(
+				{permanent_failure, <<"535 Authentication failed\r\n">>},
+				gen_smtp_client:send_blocking(
+					?SAMPLE_EMAIL,
+					[{relay, "localhost"}, {username, "iceman"}, {password, "coincoin"}, {port, 2525}]
+				)
+			),
+			application:stop(geo_gateway)
+		end, ?SAMPLE_CONFIG)}
+	].
+
 forwarding_test_() ->
 	[
 		{"We can forward to a simple test box receiver",

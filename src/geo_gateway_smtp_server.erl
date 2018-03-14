@@ -93,17 +93,19 @@ handle_EHLO(Hostname, Extensions, State) ->
 %%
 %% Return values are either `{ok, State}' or `{error, Message, State}' as before.
 -spec handle_MAIL(From :: binary(), State :: #state{}) -> {'ok', #state{}} | error_message().
-handle_MAIL(<<"badguy@blacklist.com">>, State) ->
-	{error, "552 Not Managed", State};
-handle_MAIL(From, State) ->
-	% Filter the accepted mails. TODO Do we really need to reject using FROM?
-	lager:debug("Mail from ~s", [From]),
-	case maps:get(email, State#state.user) of
-		From ->
+handle_MAIL(From, State = #state{user=User}) when User =/= undefined ->
+	% Filter the accepted mails.
+	lager:info("Mail from ~s", [From]),
+	case maps:find(email, State#state.user) of
+		{ok, From} ->
 			{ok, State};
 		_ ->
 			{error, "552 Not Managed", State}
-	end.
+	end;
+handle_MAIL(From, State) ->
+	% TODO Why gen_smtp is accepting the mail?
+	lager:info("Refused a mail from ~s", [From]),
+	{error, "535 Authentication failed", State}.
 
 %% @doc Handle an extension to the MAIL verb. Return either `{ok, State}' or `error' to reject
 %% the option.
@@ -139,7 +141,8 @@ handle_DATA(From, To, Data, State) ->
 			User = State#state.user,
 			lager:debug("User: ~p", [User]),
 			% Now parse the actual sensor payload.
-			% TODO Make this customizable.
+			% TODO Make this customizable using a callback
+			% parser_server.
 			case geo_gateway_payload_parser:parse(
 				Reference,
 				Body,
@@ -219,11 +222,12 @@ handle_AUTH(Type, Username, Password, State) ->
 -spec handle_AUTH_user(Type :: 'login' | 'plain' | 'cram-md5', ProvidedPassword :: binary() | {binary(), binary()}, UserPassword :: binary(), #state{}) -> {'ok', #state{}} | 'error'.
 handle_AUTH_user(Type, ProvidedPassword, UserPassword, State) when Type =:= login; Type =:= plain, ProvidedPassword =:= UserPassword ->
 	{ok, State};
-handle_AUTH_user('cram-md5', {Digest, Seed}, UserPassword, State) ->
+handle_AUTH_user('cram-md5', {Digest, Seed}, UserPassword, State = #state{user=User}) ->
 	case smtp_util:compute_cram_digest(UserPassword, Seed) of
 		Digest ->
 			{ok, State};
 		_ ->
+			lager:info("Bad password for ~s", [maps:get(email, User)]),
 			error
 	end;
 handle_AUTH_user(Type, Password, _UserPassword, _State) ->
