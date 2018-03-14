@@ -153,7 +153,7 @@ handle_DATA(From, To, Data, State) ->
 					% transmission.
 					% TODO Make this customizable.
 					% TODO Try catch forwarding so we can always dump incoming file!
-					ok = geo_gateway_forwarding_server:forward(
+					ok = geo_gateway_forwarding_router:forward(
 						Reference,
 						Payload,
 						User,

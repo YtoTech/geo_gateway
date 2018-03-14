@@ -98,7 +98,7 @@ scheduler(State = #state{to_schedule=[ToSchedule|Others], running=Running}) ->
 	% - ff N worker processes available, and M task to run launch min(N,M)
 	% forwarding processes.
 	% May use https://github.com/devinus/poolboy or https://github.com/inaka/worker_pool
-	% TODO Pooling may be managed in the geo_gateway_forwarding_server? This is another concern
+	% TODO Pooling may be managed in the geo_gateway_forwarding_router? This is another concern
 	% as the supervision and relaunch strategy of worker task.
 	scheduler(State#state{
 		to_schedule=Others,

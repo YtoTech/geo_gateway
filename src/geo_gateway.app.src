@@ -31,7 +31,7 @@
         geo_gateway_forwarder,
         geo_gateway_forwarding_scheduler_sup,
         geo_gateway_forwarding_scheduler,
-        geo_gateway_forwarding_server,
+        geo_gateway_forwarding_router,
         geo_gateway_module_payload_receiver,
         geo_gateway_payload_parser,
         geo_gateway_sup,
