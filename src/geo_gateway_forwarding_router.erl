@@ -79,7 +79,8 @@ do_forward_forwarder(Ref, Payloads, User, Device, Forwarder) ->
 						module => Module,
 						function => forward_one,
 						args => [Ref, Payload, User, Device, Forwarder],
-						return_ok => ok
+						return_ok => ok,
+						pooling_size => maps:get(pooling_size, Forwarder, false)
 					})
 				end,
 				Payloads
@@ -89,6 +90,8 @@ do_forward_forwarder(Ref, Payloads, User, Device, Forwarder) ->
 				module => Module,
 				function => forward,
 				args => [Ref, Payloads, User, Device, Forwarder],
-				return_ok => ok
+				return_ok => ok,
+				forwarder,
+				pooling_size => maps:get(pooling_size, Forwarder, false)
 			})
 	end.

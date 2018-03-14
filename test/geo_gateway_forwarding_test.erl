@@ -116,7 +116,7 @@ forwarding_test_() ->
 			ReceivedPayloads = test_receiver:get_received_payloads(),
 			?assertEqual(1, length(ReceivedPayloads)),
 			?assertMatch([?PAYLOAD_PATTERN], ReceivedPayloads)
-		end, ?SAMPLE_CONFIG)}
+		end, ?SAMPLE_CONFIG)},
 	].
 
 forwarding_scheduler_test_() ->
@@ -130,11 +130,11 @@ forwarding_scheduler_test_() ->
 					% TODO Use async and wait for all only at the end?
 					gen_smtp_client:send_blocking(?SAMPLE_EMAIL, ?TEST_GATEWAY_OPTIONS)
 				end,
-				lists:seq(1, 100)
+				lists:seq(1, 50)
 			),
 			application:stop(geo_gateway),
 			ReceivedPayloads = test_receiver:get_received_payloads(),
-			?assertEqual(100, length(ReceivedPayloads)),
+			?assertEqual(50, length(ReceivedPayloads)),
 			lists:foreach(
 				fun(ReceivedPayload) ->
 					?assertMatch(?PAYLOAD_PATTERN, ReceivedPayload)
@@ -154,6 +154,39 @@ forwarding_scheduler_test_() ->
 			}
 		}))}
 	]}.
+
+forwarding_scheduler_pooling_test_() ->
+	[
+		{"Forwarding use per-forwarder pooling",
+		?setup_config(fun() ->
+			{ok, _} = application:ensure_all_started(geo_gateway),
+			lists:foreach(
+				fun(_Index) ->
+					gen_smtp_client:send_blocking(?SAMPLE_EMAIL, ?TEST_GATEWAY_OPTIONS)
+				end,
+				lists:seq(1, 30)
+			),
+			application:stop(geo_gateway),
+			ReceivedPayloads = test_receiver:get_received_payloads(),
+			?assertEqual(100, length(ReceivedPayloads)),
+			lists:foreach(
+				fun(ReceivedPayload) ->
+					?assertMatch(?PAYLOAD_PATTERN, ReceivedPayload)
+				end,
+				ReceivedPayloads
+			)
+		end, maps:merge(?SAMPLE_CONFIG, #{
+			forwarders => #{
+				<<"erlang_module_forwarder">> => #{
+					module => <<"geo_gateway_forwarder_module">>,
+					pooling_size => 10,
+					parameters => #{
+						target_module => <<"test_receiver">>
+					}
+				}
+			}
+		}))},
+	].
 
 % TODO Test for abort with 99 or 100 drop-rate --> reschedule N times and finally surrender ;
 % and app killed without proper termination.
