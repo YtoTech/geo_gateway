@@ -1,6 +1,4 @@
 .PHONY: test clean
-
-
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(patsubst %/,%,$(dir $(mkfile_path)))
 
@@ -26,21 +24,9 @@ release:
 	rebar3 as prod release
 
 start:
-	_build/prod/rel/GeoSensorsGateway/bin/GeoSensorsGateway foreground
+	_build/prod/rel/GeoGateway/bin/GeoGateway foreground
 
 ## Docker
 
-docker-build:
-	docker build -t geo-sensors-gateway .
-
-docker-start:
-	docker run -d -p 2525:25 -v $(current_dir)/dumps:/home/geo-sensors-gateway/dumps/ --name geo-sensors-gateway geo-sensors-gateway
-
-docker-stop:
-	docker stop geo-sensors-gateway
-
-docker-remove:
-	docker rm geo-sensors-gateway
-
-docker-log:
-	docker logs -f geo-sensors-gateway
+docker-up:
+	docker-compose up

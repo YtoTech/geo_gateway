@@ -1,0 +1,9 @@
+version: '3'
+services:
+  gateway:
+    build: .
+    ports:
+     - "2525:2525"
+    volumes:
+      #- ./priv/conf/configuration.json:./priv/conf/configuration.json
+      - ./dumps:/home/geo-sensors-gateway/dumps/

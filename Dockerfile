@@ -14,19 +14,14 @@ RUN chmod a+x /usr/bin/rebar3
 # ENV PATH=:/usr/bin/rebar3:$PATH
 
 # Working directory.
-RUN mkdir -p /home/geo-sensors-gateway
-WORKDIR /home/geo-sensors-gateway
+RUN mkdir -p /home/geo-gateway
+WORKDIR /home/geo-gateway
 
-# TODO Do not copy configuration.json. Use another way to provide it?
-# Mount directory? We can put it in a config sub-direct so we can mount it only.
-# Implement a provider fetching from web?
-# Local file still should be a way to get started.
-COPY rebar.config rebar.lock Makefile /home/geo-sensors-gateway/
-COPY src/* /home/geo-sensors-gateway/src/
+COPY rebar.config rebar.lock Makefile /home/geo-gateway/
+COPY src/* /home/geo-gateway/src/
+COPY priv/conf/* /home/geo-gateway/priv/conf/
 
 RUN make release
-COPY configuration.docker.json /home/geo-sensors-gateway/_build/prod/rel/GeoSensorsGateway/configuration.json
-RUN mkdir -p /home/geo-sensors-gateway/dumps
 
 # Expose relevant ports.
 EXPOSE 25

@@ -13,7 +13,7 @@ indent_size = 4
 [Makefile]
 indent_style = tab
 
-[*.{conf,src,config,markdown}]
+[*.{conf,src,config,markdown,yml}]
 indent_style = space
 
 [*.eml]
