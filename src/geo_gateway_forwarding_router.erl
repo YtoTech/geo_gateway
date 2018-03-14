@@ -16,7 +16,7 @@
 
 %% API functions.
 -export([
-	start_link/0, stop/0, forward/5, forward_sync/5
+	start_link/0, stop/0, forward/5
 ]).
 %% gen_server callbacks.
 -export([
@@ -35,11 +35,7 @@ stop() ->
 
 -spec forward(Ref :: binary(), Payload :: list(), User :: map(), Device :: map(), Forwarders :: list()) -> ok.
 forward(Ref, Payload, User, Device, Forwarders) ->
-	gen_server:cast(geo_gateway_forwarding_router, {forward, {Ref, Payload, User, Device, Forwarders}}).
-
--spec forward_sync(Ref :: binary(), Payload :: list(), User :: map(), Device :: map(), Forwarders :: list()) -> ok.
-forward_sync(Ref, Payload, User, Device, Forwarders) ->
-	gen_server:cast(geo_gateway_forwarding_router, {forward, {Ref, Payload, User, Device, Forwarders}}).
+	gen_server:call(geo_gateway_forwarding_router, {forward, {Ref, Payload, User, Device, Forwarders}}).
 
 %%====================================================================
 %% Internal functions
@@ -48,9 +44,6 @@ forward_sync(Ref, Payload, User, Device, Forwarders) ->
 init([]) ->
 	{ok, undefined}.
 
-handle_cast({forward, {Ref, Payloads, User, Device, Forwarders}}, State) ->
-	do_forward(Ref, Payloads, User, Device, Forwarders),
-	{noreply, State};
 handle_cast(_Request, State) ->
 	{noreply, State}.
 
@@ -65,13 +58,9 @@ do_forward(Ref, Payloads, User, Device, Forwarders) ->
 	% them.
 	lists:foreach(
 		fun(ForwarderId) ->
-			case maps:find(ForwarderId, Forwarders) of
-				{ok, Forwarder} ->
-					lager:debug("Forwarder ~p", [Forwarder]),
-					do_forward_forwarder(Ref, Payloads, User, Device, Forwarder);
-				_ ->
-					lager:warning("No forwarder ~p: ignore", [ForwarderId])
-			end
+			Forwarder = maps:get(ForwarderId, Forwarders),
+			lager:debug("Forwarder ~p", [Forwarder]),
+			do_forward_forwarder(Ref, Payloads, User, Device, Forwarder)
 		end,
 		maps:get(forwarders, User)
 	).
@@ -80,30 +69,26 @@ do_forward(Ref, Payloads, User, Device, Forwarders) ->
 do_forward_forwarder(Ref, Payloads, User, Device, Forwarder) ->
 	Module = binary_to_atom(maps:get(module, Forwarder), unicode),
 	lager:info("Forward with module ~s", [Module]),
-	case code:ensure_loaded(Module) of
-		{module, Module} ->
-			% Add to forwarding to run and launch a schedule/0 pass.
-			ok = case maps:get(one_by_one, Forwarder, false) of
-				true ->
-					lists:foreach(
-						fun (Payload) ->
-							geo_gateway_forwarding_scheduler:schedule(#{
-								module => Module,
-								function => forward_one,
-								args => [Ref, Payload, User, Device, Forwarder],
-								return_ok => ok
-							})
-						end,
-						Payloads
-					);
-				_ ->
+	{module, Module} = code:ensure_loaded(Module),
+	% Add to forwarding to run and launch a schedule/0 pass.
+	ok = case maps:get(one_by_one, Forwarder, false) of
+		true ->
+			lists:foreach(
+				fun (Payload) ->
 					geo_gateway_forwarding_scheduler:schedule(#{
 						module => Module,
-						function => forward,
-						args => [Ref, Payloads, User, Device, Forwarder],
+						function => forward_one,
+						args => [Ref, Payload, User, Device, Forwarder],
 						return_ok => ok
 					})
-			end;
-		{error, _Reason} ->
-			lager:error("No module ~p for forwarder ~p: ignore", [Module, Forwarder])
+				end,
+				Payloads
+			);
+		_ ->
+			geo_gateway_forwarding_scheduler:schedule(#{
+				module => Module,
+				function => forward,
+				args => [Ref, Payloads, User, Device, Forwarder],
+				return_ok => ok
+			})
 	end.
