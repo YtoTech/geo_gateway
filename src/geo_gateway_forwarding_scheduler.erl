@@ -37,7 +37,7 @@
 		to_schedule = [] :: list(),
 		running = #{} :: map(),
 		is_shuttingdown = false :: boolean(),
-		shutdown_ref = nil :: tuple(),
+		shutdown_ref = nil :: nil | tuple(),
 		rescheduled = #{} :: map()
 	}
 ).

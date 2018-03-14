@@ -12,7 +12,6 @@
 -module(geo_gateway_forwarding_router).
 -author('yoan@ytotech.com').
 
--behaviour(geo_gateway_forwarder).
 -behaviour(gen_server).
 
 %% API functions.

@@ -8,4 +8,4 @@
 -module(geo_gateway_forwarder).
 -author('yoan@ytotech.com').
 
--callback forward(Ref :: binary(), Payloads :: list(), User :: map(), Device :: map(), Forwarders :: list()) -> 'ok'.
+-callback forward(Ref :: binary(), Payloads :: list(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
