@@ -1,19 +1,16 @@
 %% @doc A simple example callback module for `forwarder' that also serves as
 %% documentation for the required callback API.
-%% Responsible for forwarding parsed sensor payloads. Should return immediately
-%% and handle forwarding in dedicated processes.
 
 -module(geo_gateway_forwarder_mail).
 -author('yoan@ytotech.com').
 
-%% API
--export([forward_one/5]).
+-behavior(geo_gateway_forwarder).
 
--spec forward_one(Reference :: binary(), Payloads :: list(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
-forward_one(_Reference, Payloads, _User, _Device, Forwarder) ->
-	% TODO Do forward in another process.
-	% Basically add to a queue using Erlang messages.
-	% Create one new process per forwarding?
+%% API
+-export([forward/5]).
+
+-spec forward(Reference :: binary(), Payloads :: list(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
+forward(_Reference, Payloads, _User, _Device, Forwarder) ->
 	SmtpConfiguration = nested:get([parameters, smtp], Forwarder),
 	From = nested:get([parameters, from], Forwarder, "geo-sensors-gateway@ytotech.com"),
 	lists:foreach(

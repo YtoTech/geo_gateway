@@ -4,11 +4,15 @@
 -module(geo_gateway_forwarder_module).
 -author('yoan@ytotech.com').
 
-%% API
--export([forward_one/5]).
+-behavior(geo_gateway_forwarder).
+% TODO Also implement for the forward_one version.
+% -behavior(geo_gateway_forwarder_one).
 
--spec forward_one(Reference :: binary(), Payloads :: list(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
-forward_one(_Reference, Payloads, User, Device, Forwarder) ->
+%% API
+-export([forward/5]).
+
+-spec forward(Reference :: binary(), Payloads :: list(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
+forward(_Reference, Payloads, User, Device, Forwarder) ->
 	case 'forward?'(maps:get(parameters, Forwarder)) of
 		true ->
 			ReceiverModule = binary_to_atom(nested:get([parameters, target_module], Forwarder), unicode),
