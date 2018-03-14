@@ -102,6 +102,7 @@ load_config() ->
 		fun(_ForwarderId, Forwarder) ->
 			#{
 				module => maps:get(<<"module">>, Forwarder),
+				one_by_one => maps:get(<<"module">>, Forwarder, false),
 				parameters => maps:fold(MapKeyToAtom, #{}, maps:get(<<"parameters">>, Forwarder, []))
 			}
 		end,
