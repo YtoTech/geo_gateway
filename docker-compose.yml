@@ -6,4 +6,5 @@ services:
      - "2525:2525"
     volumes:
       #- ./priv/conf/configuration.json:./priv/conf/configuration.json
-      - ./dumps:/home/geo-sensors-gateway/dumps/
+      - ./dumps:/home/geo-gateway/_build/prod/rel/GeoGateway/dumps
+      - ./logs:/home/geo-gateway/_build/prod/rel/GeoGateway/logs
