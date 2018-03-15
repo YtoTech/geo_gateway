@@ -19,7 +19,7 @@
 ]).
 %% gen_server callbacks.
 -export([
-	init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2
+	init/1, handle_call/3, handle_cast/2, handle_info/2
 ]).
 %% For tests.
 -export([
@@ -121,8 +121,8 @@ handle_info({'EXIT', Pid, normal}, State = #state{running=Running}) ->
 handle_info({'EXIT', Pid, Reason}, State = #state{running=Running}) ->
 	case maps:is_key(Pid, Running) of
 		false ->
-			lager:warning("Received EXIT from unknown worker: ~p. Reader: ~p", [Pid, Reason]),
-			{noreply, State};
+			lager:warning("Received EXIT from unknown worker: ~p. Reason: ~p", [Pid, Reason]),
+			{stop, {error, unhandled_linked_process_error, Pid, Reason}, State};
 		_ ->
 			on_worker_error(Pid, Reason, State)
 	end;
@@ -176,10 +176,6 @@ reschedule(State = #state{rescheduled=Rescheduled}, FailedTask, RunningUpdated) 
 	{ok, TRef} = timer:send_after(Delay, {to_reschedule, self(), Ref, ToReschedule}),
 	RescheduledUpdated = maps:put(Ref, #{ timer => TRef, task => ToReschedule }, Rescheduled),
 	{noreply, State#state{running=RunningUpdated, rescheduled=RescheduledUpdated}}.
-
-terminate(normal, _State) ->
-	lager:info("Shutting down ok"),
-    ok.
 
 %%====================================================================
 %% Private util functions.

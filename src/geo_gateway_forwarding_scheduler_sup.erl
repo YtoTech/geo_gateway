@@ -13,7 +13,7 @@
 ]).
 %% gen_server callbacks.
 -export([
-	init/1, handle_call/3, handle_cast/2, terminate/2
+	init/1, handle_call/3, handle_cast/2, terminate/2, handle_info/2
 ]).
 
 %%====================================================================
@@ -21,7 +21,6 @@
 %%====================================================================
 
 start_link() ->
-	geo_gateway_forwarding_scheduler:start_link(),
 	gen_server:start_link({local, geo_gateway_forwarding_scheduler_sup}, ?MODULE, [], []).
 
 stop() ->
@@ -29,6 +28,7 @@ stop() ->
 
 init([]) ->
 	process_flag(trap_exit, true),
+	geo_gateway_forwarding_scheduler:start_link(),
 	{ok, undef}.
 
 handle_cast(_Message, State) ->
@@ -40,4 +40,10 @@ handle_call(_Message, _From, State) ->
 terminate(shutdown, _State) ->
 	geo_gateway_forwarding_scheduler:stop();
 terminate(normal, _State) ->
-    ok.
+    ok;
+terminate(Reason, _State) ->
+	Reason.
+
+handle_info({'EXIT', Pid, Reason}, State) ->
+	lager:warning("Received EXIT: ~p. Reason: ~p", [Pid, Reason]),
+	{stop, Reason, State}.

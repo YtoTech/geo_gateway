@@ -140,7 +140,7 @@ forwarding_test_() ->
 	].
 
 forwarding_scheduler_test_() ->
-	{timeout, 18,
+	{timeout, 20,
 	[
 		{"All payloads are finally forwarded in presence of transient 25 % drop-rate",
 		?setup_config(fun() ->
