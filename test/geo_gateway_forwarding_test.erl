@@ -140,9 +140,9 @@ forwarding_test_() ->
 	].
 
 forwarding_scheduler_test_() ->
-	{timeout, 20,
+	{timeout, 25,
 	[
-		{"All payloads are finally forwarded in presence of transient 25 % drop-rate",
+		{"All payloads are finally forwarded in presence of transient 20 % drop-rate",
 		?setup_config(fun() ->
 			{ok, _} = application:ensure_all_started(geo_gateway),
 			lists:foreach(
