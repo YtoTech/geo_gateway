@@ -7,7 +7,7 @@ compile:
 	rebar3 compile
 
 dev:
-	rebar3 as dev auto --apps geo_sensors_gateway
+	rebar3 as dev auto --apps geo_gateway
 
 lint:
 	rebar3 dialyzer
