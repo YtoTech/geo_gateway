@@ -11,7 +11,8 @@
         jiffy,
         gen_smtp,
         nested,
-        hackney
+        hackney,
+        backoff
     ]},
     {env,[
         {gateway_config_loader, "geo_gateway_config_loader_json"},
