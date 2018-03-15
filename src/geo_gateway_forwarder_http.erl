@@ -54,7 +54,7 @@ forward(_Reference, Payloads, User, Device, Forwarder) ->
 	case StatusCode of
 		% TODO 20X
 		200 ->
-			lager:info("Sent!"),
+			lager:info("HTTP forward ok ~p", [Url]),
 			ok;
 		_ ->
 			{ok, Body} = hackney:body(Client),
