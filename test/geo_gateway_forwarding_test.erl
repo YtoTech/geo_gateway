@@ -69,7 +69,8 @@
 		longitude := _,
 		latitude := _,
 		raw := _,
-		status := _,
+		receiver_status_code := _,
+		receiver_status := _,
 		time := _,
 		timestamp := _
 	}}

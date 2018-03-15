@@ -88,10 +88,15 @@ parse_nmea(<<"GPLOC">>, Line) ->
 		Identifier ->
 			{1, Identifier}
 	end,
+	GpsStatus = case array:get(1 + Offset, Elements) of
+		<<"A">> -> ok;
+		<<"V">> -> warning
+	end,
 	Time = parse_time_hhmmssmm(array:get(3 + Offset, Elements)),
 	{ok, #{
 		format => <<"GPLOC">>,
-		status => array:get(1 + Offset, Elements),
+		receiver_status_code => array:get(1 + Offset, Elements),
+		receiver_status => GpsStatus,
 		fix_quality => array:get(2 + Offset, Elements),
 		time => Time,
 		% TODO Get a normalized timestamp.
@@ -109,6 +114,10 @@ parse_nmea(<<"GPRMC">>, Line) ->
 	Elements = array:from_list(Splitted),
 	Date = parse_date_ddmmyy(array:get(9, Elements)),
 	Time = parse_time_hhmmssmm(array:get(1, Elements)),
+	GpsStatus = case array:get(2, Elements) of
+		<<"A">> -> ok;
+		<<"V">> -> warning
+	end,
 	{ok, #{
 		format => <<"GPRMC">>,
 		time => Time,
@@ -118,7 +127,8 @@ parse_nmea(<<"GPRMC">>, Line) ->
 			Date,
 			Time
 		},
-		status => array:get(2, Elements),
+		receiver_status_code => array:get(2, Elements),
+		receiver_status => GpsStatus,
 		latitude => geo_conversions:sexagesimal_to_decimal(array:get(3, Elements), array:get(4, Elements)),
 		longitude => geo_conversions:sexagesimal_to_decimal(array:get(5, Elements), array:get(6, Elements)),
 		raw => Line
