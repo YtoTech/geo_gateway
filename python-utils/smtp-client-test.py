@@ -23,6 +23,11 @@ msg = MIMEText(
 	$GPRMC,163734.00,A,4813.83336,N,00101.14936,E,0.015,0.00,230917,,,A*67
 	'''
 )
+# msg = MIMEText(
+# 	'''
+# 	$GPRMC,163734.00,A,4314.83336,N,00111.14936,E,0.015,0.00,230917,,,A*67
+# 	'''
+# )
 
 expeditor = 'test@ytotech.com'
 recipient = 'genloc@ytotech.com'
