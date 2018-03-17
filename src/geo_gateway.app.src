@@ -1,7 +1,12 @@
 {application, geo_gateway, [
     {description, "A gateway for receiving and redistributing data from machine sensors"},
     {vsn, "git"},
-    {registered, []},
+    {registered, [
+        geo_gateway_forwarding_router,
+        geo_gateway_forwarding_scheduler,
+        geo_gateway_forwarding_scheduler_sup,
+        geo_gateway_config_loader_in_memory
+    ]},
     {mod, { geo_gateway_app, []}},
     {applications, [
         kernel,
