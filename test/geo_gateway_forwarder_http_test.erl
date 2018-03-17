@@ -8,8 +8,8 @@ decimal_formatting_test_() ->
 	[
 		{"Float conversion for GET parameter encoding",
 		[
-			?_assertEqual(<<"0.774003666666667">>, float_to_binary(0.7740036666666666, geo_gateway_forwarder_http:float_format())),
-			?_assertEqual(<<"0.000815333333333">>, float_to_binary(8.153333333333333e-4, geo_gateway_forwarder_http:float_format()))
+			?_assertEqual(<<"0.774003666666667">>, geo_gateway_forwarder_http:format_float_to_string(0.7740036666666666)),
+			?_assertEqual(<<"0.000815333333333">>, geo_gateway_forwarder_http:format_float_to_string(8.153333333333333e-4))
 		]},
 		{"Float conversion for JSON parameter encoding",
 		[

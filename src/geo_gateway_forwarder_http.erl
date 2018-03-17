@@ -9,7 +9,7 @@
 % -behavior(geo_gateway_forwarder_one).
 
 %% API
--export([forward/5, float_format/0, json_options/0]).
+-export([forward/5, float_format/0, json_options/0, format_float_to_string/1]).
 
 -spec forward(Reference :: binary(), Payloads :: list(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
 forward(_Reference, Payloads, User, Device, Forwarder) ->
