@@ -9,7 +9,7 @@
 % -behavior(geo_gateway_forwarder_one).
 
 %% API
--export([forward/5]).
+-export([forward/5, float_format/0, json_options/0]).
 
 -spec forward(Reference :: binary(), Payloads :: list(), User :: map(), Device :: map(), Forwarder :: map()) -> 'ok'.
 forward(_Reference, Payloads, User, Device, Forwarder) ->
@@ -38,7 +38,7 @@ forward(_Reference, Payloads, User, Device, Forwarder) ->
 	% 	"{ \"text\": \"New sensor message\nUser: ~s\nDevice: ~s\n\n~s\" }"
 	% },
 	% lager:debug("Json: ~p", [Json]),
-	% PayloadHttp = jiffy:encode(Json),
+	% PayloadHttp = jsone:encode(Json, json_options()),
 	PayloadHttp = io_lib:format(
 		nested:get([parameters, template], Forwarder),
 		[erlang_to_json_string(User), erlang_to_json_string(Device), erlang_to_json_string(Payloads)]
@@ -65,3 +65,12 @@ forward(_Reference, Payloads, User, Device, Forwarder) ->
 
 erlang_to_json_string(Erlang) ->
 	string:replace(io_lib:format("~p", [Erlang]), "\"", "\\\"", all).
+
+float_format() ->
+	[{decimals, 15}, compact].
+
+json_options() ->
+	[{float_format, float_format()}].
+
+format_float_to_string(Float) ->
+	float_to_binary(Float, geo_gateway_forwarder_http:float_format()).

@@ -37,9 +37,7 @@ load_config() ->
 			configuration from the example configuration.json.sample.", [ConfigFilePath]),
 			erlang:error(no_configuration)
 	end,
-	ConfigurationAsJson = jiffy:decode(
-		ConfigurationFileContent, [return_maps, use_nil]
-	),
+	ConfigurationAsJson = jsone:decode(ConfigurationFileContent),
 	% Parse and reformat configuration.
 	% TODO Make it recursive?
 	MapKeyToAtom = fun(Key, Value, NewMap) ->

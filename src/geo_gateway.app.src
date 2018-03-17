@@ -13,7 +13,7 @@
         stdlib,
         eiconv,
         lager,
-        jiffy,
+        jsone,
         gen_smtp,
         nested,
         hackney,

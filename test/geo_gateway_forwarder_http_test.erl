@@ -8,12 +8,12 @@ decimal_formatting_test_() ->
 	[
 		{"Float conversion for GET parameter encoding",
 		[
-			?_assertEqual(<<"longitude=0.774004">>, erlang:iolist_to_binary(io_lib:format("longitude=~f", [0.7740036666666666]))),
-			?_assertEqual(<<"longitude=0.000815">>, erlang:iolist_to_binary(io_lib:format("longitude=~f", [8.153333333333333e-4])))
+			?_assertEqual(<<"0.774003666666667">>, float_to_binary(0.7740036666666666, geo_gateway_forwarder_http:float_format())),
+			?_assertEqual(<<"0.000815333333333">>, float_to_binary(8.153333333333333e-4, geo_gateway_forwarder_http:float_format()))
 		]},
 		{"Float conversion for JSON parameter encoding",
 		[
-			?_assertEqual(<<"{\"longitude\":0.7740036666666666}">>, jiffy:encode(#{ longitude => 0.7740036666666666 })),
-			?_assertEqual(<<"{\"longitude\":0.0008153333333333333}">>, jiffy:encode(#{ longitude => 8.153333333333333e-4 }))
+			?_assertEqual(<<"{\"longitude\":0.774003666666667}">>, jsone:encode(#{ longitude => 0.7740036666666666 }, geo_gateway_forwarder_http:json_options())),
+			?_assertEqual(<<"{\"longitude\":0.000815333333333}">>, jsone:encode(#{ longitude => 8.153333333333333e-4 }, geo_gateway_forwarder_http:json_options()))
 		]}
 	].
