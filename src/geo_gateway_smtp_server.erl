@@ -75,7 +75,7 @@ handle_EHLO(<<"invalid">>, _Extensions, State) ->
 	% contrived example
 	{error, "554 invalid hostname", State};
 handle_EHLO(Hostname, Extensions, State) ->
-	lager:debug("EHLO from ~s", [Hostname]),
+	lager:info("EHLO from ~s", [Hostname]),
 	% You can advertise additional extensions, or remove some defaults
     lager:debug("auth is ~w", [proplists:get_value(auth, State#state.options, false)]),
 	MyExtensions = case proplists:get_value(auth, State#state.options, false) of
