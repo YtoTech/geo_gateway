@@ -116,3 +116,6 @@ TODO Forwarder examples:
 	* ---> To AWS s3?
 	* Create sample forwarders for that.
 	* So we can recover any data when we need.
+* Gateway reporting: add a statistics service
+	* Report to Slack or mails the number of payloads forwarder in a day, week, etc.
+	* Manage that in the application level? (Geo-service storage API?)
