@@ -7,12 +7,11 @@ script:
 - cp ./priv/conf/configuration.tests.json ./priv/conf/configuration.json
 - make test
 otp_release:
-- 20.1
-- 20.0
+- 22.0
 jobs:
   include:
   - stage: deploy
-    otp_release: 20.0
+    otp_release: 22.0
     script: skip
     deploy:
       provider: script

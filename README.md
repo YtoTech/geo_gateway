@@ -69,8 +69,8 @@ sudo chmod +x /usr/bin/rebar3
 
 You can use your configuration file from a sample to get started rapidly.
 
-```
-cp ./priv/conf/configuration.json.sample ./priv/conf/configuration.json
+```sh
+cp ./priv/conf/configuration.sample.json ./priv/conf/configuration.json
 ```
 
 ## Build
