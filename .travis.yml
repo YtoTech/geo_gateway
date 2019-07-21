@@ -1,15 +1,16 @@
 language: erlang
 sudo: false
 install:
-  - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
+- wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
 script:
-  - make lint
-  - cp ./priv/conf/configuration.tests.json ./priv/conf/configuration.json
-  - make test
+- make lint
+- cp ./priv/conf/configuration.tests.json ./priv/conf/configuration.json
+- make test
 otp_release:
 - 22.0
 jobs:
   include:
+  - stage: test
   - stage: deploy
     otp_release: 22.0
     script: skip
