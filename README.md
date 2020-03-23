@@ -85,9 +85,6 @@ cp ./priv/conf/configuration.sample.json ./priv/conf/configuration.json
 
 Only compatible with Erlang OTP 20+.
 
-TODO Installation instructions for Erlang
-* Where to get Erlang distribution
-* `apt install inotify-tools` (for dev)
 
 % TODO Use error_logger:info_msg("") for logging
 --> Use a logging facility and be able to configure it to stdout or file,
