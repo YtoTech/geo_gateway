@@ -30,3 +30,9 @@ start:
 
 docker-up:
 	docker-compose up
+
+# Publishing (to Hex)
+# See https://hex.pm/docs/rebar3_publish
+# First requires to register: rebar3 hex user auth
+publish-hex:
+	rebar3 hex publish
