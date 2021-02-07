@@ -8,7 +8,7 @@
 
 -export([init/4, handle_HELO/2, handle_EHLO/3, handle_MAIL/2, handle_MAIL_extension/2,
 	handle_RCPT/2, handle_RCPT_extension/2, handle_DATA/4, handle_RSET/1, handle_VRFY/2,
-	handle_other/3, handle_AUTH/4, handle_info/2,
+	handle_other/3, handle_AUTH/4, handle_info/2, handle_STARTTLS/1,
 	code_change/3, terminate/2]).
 
 -record(state,
@@ -31,7 +31,7 @@
 %% to ALL subsequent calls to the callback module, so it can be used to keep track of the SMTP
 %% session. You can also return `{stop, Reason, Message}' where the session will exit with Reason
 %% and send Message to the client.
--spec init(Hostname :: binary(), SessionCount :: non_neg_integer(), Address :: tuple(), Options :: list()) -> {'ok', string(), #state{}} | {'stop', any(), string()}.
+-spec init(Hostname :: inet:hostname(), SessionCount :: non_neg_integer(), Address :: inet:ip_address(), Options :: list()) -> {'ok', iodata(), #state{}} | {'stop', any(), iodata()}.
 init(Hostname, SessionCount, Address, Options) ->
 	lager:debug("peer: ~p", [Address]),
 	case SessionCount > 20 of
@@ -236,6 +236,13 @@ handle_AUTH_user(Type, Password, _UserPassword, _State) ->
 
 handle_info(_Info, State) ->
 	{noreply, State}.
+
+%% this callback is OPTIONAL
+%% it only gets called if you add STARTTLS to your ESMTP extensions
+-spec handle_STARTTLS(#state{}) -> #state{}.
+handle_STARTTLS(State) ->
+    lager:info("TLS Started"),
+    State.
 
 -spec code_change(OldVsn :: any(), State :: #state{}, Extra :: any()) -> {ok, #state{}}.
 code_change(_OldVsn, State, _Extra) ->

@@ -1,6 +1,6 @@
 {application, geo_gateway, [
     {description, "A gateway for receiving and redistributing data from machine sensors"},
-    {vsn, "0.1.0"},
+    {vsn, "0.2.0"},
     {registered, [
         geo_gateway_forwarding_router,
         geo_gateway_forwarding_scheduler,
