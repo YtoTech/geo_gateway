@@ -44,7 +44,6 @@
         geo_gateway_smtp_server
     ]},
 
-    {maintainers, ["Yoan Tournade"]},
     {licenses, ["AGPL v3"]},
     {links, [{"GitHub","https://github.com/YtoTech/geo_gateway"}]}
 ]}.

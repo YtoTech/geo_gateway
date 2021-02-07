@@ -2,8 +2,15 @@
 
 # It misses things to fetch package by rebar.
 # Maybe wget? curl?
-# FROM erlang:20.0.2-alpine
-FROM erlang:latest
+# FROM erlang:21.3-alpine
+FROM erlang:20.3
+# FROM erlang:latest
+
+# RUN apk add --update --no-cache \
+# 	make \
+# 	gcc \
+# 	gnu-libiconv \
+# 	gnu-libiconv-dev
 
 # Install Rebar3.
 # RUN mkdir -p /usr/bin
