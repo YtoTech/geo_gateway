@@ -21,7 +21,7 @@ test-cover:
 
 # Releasing and running in production.
 release:
-	rebar3 as prod release
+	DIAGNOSTIC=1 rebar3 as prod release
 
 start:
 	_build/prod/rel/GeoGateway/bin/GeoGateway foreground
